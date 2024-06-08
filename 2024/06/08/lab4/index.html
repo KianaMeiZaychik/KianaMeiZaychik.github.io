@@ -58,7 +58,7 @@
 <meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596110.png">
 <meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596102.png">
 <meta property="article:published_time" content="2024-06-08T06:00:00.000Z">
-<meta property="article:modified_time" content="2024-06-08T09:29:36.356Z">
+<meta property="article:modified_time" content="2024-06-08T11:16:59.155Z">
 <meta property="article:author" content="闲云">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/image.png?raw=true">
@@ -215,7 +215,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-06-08 14:00:00 / 修改时间：17:29:36" itemprop="dateCreated datePublished" datetime="2024-06-08T14:00:00+08:00">2024-06-08</time>
+              <time title="创建时间：2024-06-08 14:00:00 / 修改时间：19:16:59" itemprop="dateCreated datePublished" datetime="2024-06-08T14:00:00+08:00">2024-06-08</time>
             </span>
 
           <br>
@@ -244,7 +244,7 @@
 
       
         <h1 id="感知机"><a href="#感知机" class="headerlink" title="感知机"></a>感知机</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>感知机（英语：Perceptron）是Frank Rosenblatt在1957年就职于康奈尔航空实验室（Cornell Aeronautical Laboratory）时所发明的一种人工神经网络。它可以被视为一种最简单形式的前馈神经网络，是一种二元线性分类器。</p>
-<p>Frank Rosenblatt给出了相应的感知机学习算法，常用的有感知机学习、最小二乘法和梯度下降法。譬如，感知机利用梯度下降法对损失函数进行极小化，求出可将训练数据进行线性划分的分离超平面，从而求得感知机模型。</p>
+<p>Frank Rosenblatt给出了相应的感知机学习算法，常用的有感知机学习、最小二乘法和梯度下降法。譬如，感知机利用梯度下降法对损失函数进行极小化，求出可将训练数据进行线性划分的分离超平面，从而求得感知机模型。<span id="more"></span></p>
 <p>感知机是生物神经细胞的简单抽象。神经细胞结构大致可分为：树突、突触、细胞体及轴突。单个神经细胞可被视为一种只有两种状态的机器——激活时为‘是’，而未激活时为‘否’。神经细胞的状态取决于从其它的神经细胞收到的输入信号量，及突触的强度（抑制或加强）。当信号量总和超过了某个阈值时，细胞体就会激活，产生电脉冲。电脉冲沿着轴突并通过突触传递到其它神经元。为了模拟神经细胞行为，与之对应的感知机基础概念被提出，如权量（突触）、偏置（阈值）及激活函数（细胞体）。</p>
 <p>在人工神经网络领域中，感知机也被指为单层的人工神经网络，以区别于较复杂的多层感知机（Multilayer Perceptron）。作为一种线性分类器，（单层）感知机可说是最简单的前向人工神经网络形式。尽管结构简单，感知机能够学习并解决相当复杂的问题。感知机主要的本质缺陷是它不能处理线性不可分问题。</p>
 <h2 id="单层感知机"><a href="#单层感知机" class="headerlink" title="单层感知机"></a>单层感知机</h2><h3 id="模型结构"><a href="#模型结构" class="headerlink" title="模型结构"></a>模型结构</h3><p>单层感知机的模型可以简单表示为：<br>$$ f(x) &#x3D; sign(w*x+b) $$<br>对于具有 $n$ 个输入 $x_{i}$ 以及对应连接权重系数为 $w_j$ 的感知机，首先通过线性加权得到输入数据的累加结果 $z$：$z&#x3D;w_1 x_1+w_2 x_2+ … +b$。这里 $x_1,x_2,…,x_n$ 为感知机的输入，$w_1,w_2,…,w_n$为网络的权重系数，$b$ 为偏置项（$bias$）。然后将 $z$ 作为激活函数 $\varPhi(\cdot)$ 的输入，这里激活函数 $\varPhi(\cdot)$为 $sign$ 函数，其表达式为：</p>

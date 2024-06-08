@@ -20,30 +20,63 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="雄关漫道真如铁 而今迈步从头越">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Lilin">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="感知机简介感知机（英语：Perceptron）是Frank Rosenblatt在1957年就职于康奈尔航空实验室（Cornell Aeronautical Laboratory）时所发明的一种人工神经网络。它可以被视为一种最简单形式的前馈神经网络，是一种二元线性分类器。 Frank Rosenblatt给出了相应的感知机学习算法，常用的有感知机学习、最小二乘法和梯度下降法。譬如，感知机利用梯度下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于前馈神经网络的姓氏分类">
+<meta property="og:url" content="http://example.com/2024/06/08/lab4/index.html">
 <meta property="og:site_name" content="Lilin">
-<meta property="og:description" content="雄关漫道真如铁 而今迈步从头越">
+<meta property="og:description" content="感知机简介感知机（英语：Perceptron）是Frank Rosenblatt在1957年就职于康奈尔航空实验室（Cornell Aeronautical Laboratory）时所发明的一种人工神经网络。它可以被视为一种最简单形式的前馈神经网络，是一种二元线性分类器。 Frank Rosenblatt给出了相应的感知机学习算法，常用的有感知机学习、最小二乘法和梯度下降法。譬如，感知机利用梯度下">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-1.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-2.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-4.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-7.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-10.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-5.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-11.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-6.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-12.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-13.png">
+<meta property="og:image" content="https://github.com/PaddlePaddle/awesome-DeepLearning/raw/master/docs/images/deep_learning/loss_functions/CrossEntropy.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-15.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-16.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cf144f-2019-06-19-juanji.gif">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-14.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5C3fd53-2019-06-19-chihua.gif">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cc1a6d-2019-06-19-quanlianjie.png.webp">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Ca8f0b-2019-06-19-lenet.png.webp">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596033.png">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596054.png">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596071.png">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596080.png">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596142.png">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596131.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-17.png">
+<meta property="og:image" content="http://example.com/%5Cphoto%5Cimage-18.png">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596120.png">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596110.png">
+<meta property="og:image" content="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596102.png">
+<meta property="article:published_time" content="2024-06-08T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-08T07:07:09.883Z">
 <meta property="article:author" content="闲云">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/%5Cphoto%5Cimage.png">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/2024/06/08/lab4/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>Lilin</title>
+  <title>基于前馈神经网络的姓氏分类 | Lilin</title>
   
 
 
@@ -151,9 +184,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -169,10 +203,9 @@
       <meta itemprop="name" content="Lilin">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/06/08/lab4/" class="post-title-link" itemprop="url">基于前馈神经网络的姓氏分类</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          基于前馈神经网络的姓氏分类
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -210,7 +243,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="感知机"><a href="#感知机" class="headerlink" title="感知机"></a>感知机</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>感知机（英语：Perceptron）是Frank Rosenblatt在1957年就职于康奈尔航空实验室（Cornell Aeronautical Laboratory）时所发明的一种人工神经网络。它可以被视为一种最简单形式的前馈神经网络，是一种二元线性分类器。</p>
+        <h1 id="感知机"><a href="#感知机" class="headerlink" title="感知机"></a>感知机</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>感知机（英语：Perceptron）是Frank Rosenblatt在1957年就职于康奈尔航空实验室（Cornell Aeronautical Laboratory）时所发明的一种人工神经网络。它可以被视为一种最简单形式的前馈神经网络，是一种二元线性分类器。</p>
 <p>Frank Rosenblatt给出了相应的感知机学习算法，常用的有感知机学习、最小二乘法和梯度下降法。譬如，感知机利用梯度下降法对损失函数进行极小化，求出可将训练数据进行线性划分的分离超平面，从而求得感知机模型。</p>
 <p>感知机是生物神经细胞的简单抽象。神经细胞结构大致可分为：树突、突触、细胞体及轴突。单个神经细胞可被视为一种只有两种状态的机器——激活时为‘是’，而未激活时为‘否’。神经细胞的状态取决于从其它的神经细胞收到的输入信号量，及突触的强度（抑制或加强）。当信号量总和超过了某个阈值时，细胞体就会激活，产生电脉冲。电脉冲沿着轴突并通过突触传递到其它神经元。为了模拟神经细胞行为，与之对应的感知机基础概念被提出，如权量（突触）、偏置（阈值）及激活函数（细胞体）。</p>
 <p>在人工神经网络领域中，感知机也被指为单层的人工神经网络，以区别于较复杂的多层感知机（Multilayer Perceptron）。作为一种线性分类器，（单层）感知机可说是最简单的前向人工神经网络形式。尽管结构简单，感知机能够学习并解决相当复杂的问题。感知机主要的本质缺陷是它不能处理线性不可分问题。</p>
@@ -395,21 +428,23 @@
 <p>然而，这个操作有一个隐含的技巧，如图下所示。对于要添加到卷积输出的输入，它们必须具有相同的形状。为此，标准做法是在卷积之前应用填充。在图4-15中，填充尺寸为1，卷积大小为3。</p>
 <p><img src="https://test.educg.net/userfiles/markdown/exp/2020_8/2034ll1597596102.png"><br><font color='grey'><center> 残差连接是一种将原始矩阵加到卷积输出上的方法。当将卷积层应用于输入矩阵并将结果添加到输入矩阵时，以上直观地描述了这一点。创建与输入大小相同的输出的通用超参数设置是让kernel_size&#x3D;3和padding&#x3D;1。一般来说，任何带 adding&#x3D;(floor(kernel_size)&#x2F;2-1) 的奇数内核大小都将导致与输入大小相同的输出。卷积层产生的矩阵被加到输入端，最后的结果是剩余连接计算的输出端。</center></font></p>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
+
+        
+
+
+        
       </footer>
+    
   </article>
   
   
-  
-
-
   
 
 
@@ -462,6 +497,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%84%9F%E7%9F%A5%E6%9C%BA"><span class="nav-number">1.</span> <span class="nav-text">感知机</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA"><span class="nav-number">1.2.</span> <span class="nav-text">单层感知机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84"><span class="nav-number">1.2.1.</span> <span class="nav-text">模型结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.2.</span> <span class="nav-text">单层感知机存在的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA"><span class="nav-number">1.3.</span> <span class="nav-text">多层感知机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-number">1.3.1.</span> <span class="nav-text">多层感知机的结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%90%E8%97%8F%E5%B1%82"><span class="nav-number">1.3.2.</span> <span class="nav-text">隐藏层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0"><span class="nav-number">1.3.3.</span> <span class="nav-text">激活函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RELU%E5%87%BD%E6%95%B0"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">RELU函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sigmoid"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">sigmoid</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tanh"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">tanh</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-number">1.3.4.</span> <span class="nav-text">损失函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9D%87%E6%96%B9%E5%B7%AE%E6%8D%9F%E5%A4%B1%EF%BC%88Mean-Square-Error%EF%BC%8CMSE%EF%BC%89"><span class="nav-number">1.3.4.1.</span> <span class="nav-text">均方差损失（Mean Square Error，MSE）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E6%96%B9%E5%BC%8F"><span class="nav-number">1.3.4.1.1.</span> <span class="nav-text">计算方式</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%A4%E5%8F%89%E7%86%B5%E6%8D%9F%E5%A4%B1%EF%BC%88cross-entropy-loss-%EF%BC%89"><span class="nav-number">1.3.4.2.</span> <span class="nav-text">交叉熵损失（cross-entropy loss ）</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA%E7%9A%84%E5%A7%93%E6%B0%8F%E5%88%86%E7%B1%BB%E7%BD%91%E7%BB%9C"><span class="nav-number">2.</span> <span class="nav-text">基于多层感知机的姓氏分类网络</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Surname-Dataset"><span class="nav-number">2.1.</span> <span class="nav-text">The Surname Dataset</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vocabulary-Vectorizer-and-DataLoader"><span class="nav-number">2.2.</span> <span class="nav-text">Vocabulary, Vectorizer, and DataLoader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#THE-VOCABULARY-CLASS"><span class="nav-number">2.2.1.</span> <span class="nav-text">THE VOCABULARY CLASS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#THE-SURNAMEVECTORIZER"><span class="nav-number">2.2.2.</span> <span class="nav-text">THE SURNAMEVECTORIZER</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Surname-Classifier-Model"><span class="nav-number">2.3.</span> <span class="nav-text">The Surname Classifier Model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Training-Routine"><span class="nav-number">2.4.</span> <span class="nav-text">The Training Routine</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#THE-TRAINING-LOOP"><span class="nav-number">2.4.1.</span> <span class="nav-text">THE TRAINING LOOP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Model-Evaluation-and-Prediction"><span class="nav-number">2.5.</span> <span class="nav-text">Model Evaluation and Prediction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#EVALUATING-ON-THE-TEST-DATASET"><span class="nav-number">2.5.1.</span> <span class="nav-text">EVALUATING ON THE TEST DATASET</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CLASSIFYING-A-NEW-SURNAME"><span class="nav-number">2.5.2.</span> <span class="nav-text">CLASSIFYING A NEW SURNAME</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RETRIEVING-THE-TOP-K-PREDICTIONS-FOR-A-NEW-SURNAME"><span class="nav-number">2.5.3.</span> <span class="nav-text">RETRIEVING THE TOP-K PREDICTIONS FOR A NEW SURNAME</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Regularizing-MLPs-Weight-Regularization-and-Structural-Regularization-or-Dropout"><span class="nav-number">2.6.</span> <span class="nav-text">Regularizing MLPs: Weight Regularization and Structural Regularization (or Dropout)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DROPOUT"><span class="nav-number">2.6.1.</span> <span class="nav-text">DROPOUT</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C"><span class="nav-number">3.</span> <span class="nav-text">卷积神经网络</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B-1"><span class="nav-number">3.1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84-1"><span class="nav-number">3.2.</span> <span class="nav-text">模型结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Convolutional-layer"><span class="nav-number">3.2.1.</span> <span class="nav-text">Convolutional layer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pooling-Layer"><span class="nav-number">3.2.2.</span> <span class="nav-text">Pooling Layer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fully-connected-layer"><span class="nav-number">3.2.3.</span> <span class="nav-text">Fully connected layer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DIMENSION-OF-THE-CONVOLUTION-OPERATION"><span class="nav-number">3.2.4.</span> <span class="nav-text">DIMENSION OF THE CONVOLUTION OPERATION</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CHANNELS"><span class="nav-number">3.2.5.</span> <span class="nav-text">CHANNELS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#KERNEL-SIZE"><span class="nav-number">3.2.6.</span> <span class="nav-text">KERNEL SIZE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#STRIDE"><span class="nav-number">3.2.7.</span> <span class="nav-text">STRIDE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PADDING"><span class="nav-number">3.2.8.</span> <span class="nav-text">PADDING</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DILATION"><span class="nav-number">3.2.9.</span> <span class="nav-text">DILATION</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E5%A7%93%E6%B0%8F%E5%88%86%E7%B1%BB"><span class="nav-number">4.</span> <span class="nav-text">基于卷积神经网络的姓氏分类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Implementing-CNNs-in-PyTorch"><span class="nav-number">4.1.</span> <span class="nav-text">Implementing CNNs in PyTorch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vocabulary-Vectorizer-and-DataLoader-1"><span class="nav-number">4.2.</span> <span class="nav-text">Vocabulary, Vectorizer, and DataLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reimplementing-the-SurnameClassifier-with-Convolutional-Networks"><span class="nav-number">4.3.</span> <span class="nav-text">Reimplementing the SurnameClassifier with Convolutional Networks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Training-Routine-1"><span class="nav-number">4.4.</span> <span class="nav-text">The Training Routine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Model-Evaluation-and-Prediction-1"><span class="nav-number">4.5.</span> <span class="nav-text">Model Evaluation and Prediction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Evaluating-on-the-Test-Dataset"><span class="nav-number">4.5.1.</span> <span class="nav-text">Evaluating on the Test Dataset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Classifying-or-retrieving-top-predictions-for-a-new-surname"><span class="nav-number">4.5.2.</span> <span class="nav-text">Classifying or retrieving top predictions for a new surname</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Miscellaneous-Topics-in-CNNs"><span class="nav-number">4.6.</span> <span class="nav-text">Miscellaneous Topics in CNNs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Pooling-Operation"><span class="nav-number">4.6.1.</span> <span class="nav-text">Pooling Operation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Batch-Normalization-BatchNorm"><span class="nav-number">4.6.2.</span> <span class="nav-text">Batch Normalization (BatchNorm)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Network-in-Network-Connections-1x1-Convolutions"><span class="nav-number">4.6.3.</span> <span class="nav-text">Network-in-Network Connections (1x1 Convolutions)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Residual-Connections-Residual-Block"><span class="nav-number">4.6.4.</span> <span class="nav-text">Residual Connections&#x2F;Residual Block</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="背景知识Attention内容组织：  图解Attention seq2seq框架 seq2seq细节 Attention    篇章1中我们对Transformers在NLP中的兴起做了概述。本教程的学习路径是：Attention-&gt;Transformer-&gt;BERT-&gt;NLP应用。因此，本篇章将从attention开始，逐步对Transformer结构所涉及的知识进行深入讲解">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于transformer和pytorch的中日机器翻译模型">
+<meta property="og:url" content="http://example.com/2024/06/24/lab14/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="背景知识Attention内容组织：  图解Attention seq2seq框架 seq2seq细节 Attention    篇章1中我们对Transformers在NLP中的兴起做了概述。本教程的学习路径是：Attention-&gt;Transformer-&gt;BERT-&gt;NLP应用。因此，本篇章将从attention开始，逐步对Transformer结构所涉及的知识进行深入讲解">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-seq2seq.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-2-translation.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-3-encoder-decoder.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-3-mt.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-4-context-example.png?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-5-word-vector.png?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-6-rnn.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-6-seq2seq.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-6-seq2seq-decoder.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-7-attetion.png?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-6-mt-1.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-7-attention-dec.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-7-attention-pro.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-7-attention.gif?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-8-attention-vis.png?raw=true?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-transformer.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-input-output.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-encoder-decoder.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-2-encoder-detail.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-encoder.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-decoder.webp?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-x.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-position.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-position2.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-2-pos-embedding.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-x-encoder.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-multi-encoder.webp?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-attention-word.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-qkv.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-think.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-think2.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-sum.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-qkv-multi.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-attention-output.webp?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-multi-head.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-8z.webp?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-to1.webp?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-put-together.webp?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-it-attention.webp?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-resnet.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-lyn.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-2layer.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/transformer_decoding_1.gif?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-decoder.gif?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-linear.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-loss.webp?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-target.png?raw=true">
+<meta property="og:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-trained.webp?raw=true">
+<meta property="og:image" content="http://example.com/.com//image.png">
+<meta property="article:published_time" content="2024-06-24T15:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-24T01:30:36.863Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-seq2seq.gif?raw=true?raw=true">
+
+<link rel="canonical" href="http://example.com/2024/06/24/lab14/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>基于transformer和pytorch的中日机器翻译模型 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/06/24/lab14/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁 而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于transformer和pytorch的中日机器翻译模型
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-06-24 23:00:00 / 修改时间：09:30:36" itemprop="dateCreated datePublished" datetime="2024-06-24T23:00:00+08:00">2024-06-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Deep-Learning/" itemprop="url" rel="index"><span itemprop="name">Deep Learning</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>17k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>15 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h1><h2 id="Attention"><a href="#Attention" class="headerlink" title="Attention"></a>Attention</h2><p>内容组织：</p>
+<ul>
+<li>图解Attention<ul>
+<li>seq2seq框架</li>
+<li>seq2seq细节</li>
+<li>Attention</li>
+</ul>
+</li>
+</ul>
+<p>篇章1中我们对Transformers在NLP中的兴起做了概述。本教程的学习路径是：Attention-&gt;Transformer-&gt;BERT-&gt;NLP应用。因此，本篇章将从attention开始，逐步对Transformer结构所涉及的知识进行深入讲解，希望能给读者以形象生动的描述。</p>
+<p>问题：Attention出现的原因是什么？<br>潜在的答案：基于循环神经网络（RNN）一类的seq2seq模型，在处理长文本时遇到了挑战，而对长文本中不同位置的信息进行attention有助于提升RNN的模型效果。</p>
+<p>于是学习的问题就拆解为：1. 什么是seq2seq模型？2. 基于RNN的seq2seq模型如何处理文本&#x2F;长文本序列？3. seq2seq模型处理长文本序列时遇到了什么问题？4.基于RNN的seq2seq模型如何结合attention来改善模型效果？</p>
+<span id="more"></span>
+<h3 id="seq2seq框架"><a href="#seq2seq框架" class="headerlink" title="seq2seq框架"></a>seq2seq框架</h3><p>seq2seq是一种常见的NLP模型结构，全称是：sequence to sequence，翻译为“序列到序列”。顾名思义：从一个文本序列得到一个新的文本序列。典型的任务有：机器翻译任务，文本摘要任务。谷歌翻译在2016年末开始使用seq2seq模型，并发表了2篇开创性的论文：<a target="_blank" rel="noopener" href="https://papers.nips.cc/paper/5346-sequence-to-sequence-learning-with-neural-networks.pdf">Sutskever等2014年发表的Sequence to Sequence Learning with Neural Networks</a>和<a target="_blank" rel="noopener" href="http://emnlp2014.org/papers/pdf/EMNLP2014179.pdf">Cho等2014年发表的Learning Phrase Representations using RNN Encoder–Decoder<br>for Statistical Machine Translation</a>，感兴趣的读者可以阅读原文进行学习。</p>
+<p>无论读者是否读过上述两篇谷歌的文章，NLP初学者想要充分理解并实现seq2seq模型很不容易。因为，我们需要拆解一系列相关的NLP概念，而这些NLP概念又是是层层递进的，所以想要清晰的对seq2seq模型有一个清晰的认识并不容易。但是，如果能够把这些复杂生涩的NLP概念可视化，理解起来其实就更简单了。因此，本文希望通过一系列图片、动态图帮助NLP初学者学习seq2seq以及attention相关的概念和知识。</p>
+<p>首先看seq2seq干了什么事情？seq2seq模型的输入可以是一个（单词、字母或者图像特征）序列，输出是另外一个（单词、字母或者图像特征）序列。一个训练好的seq2seq模型如下图所示（注释：将鼠标放在图上，图就会动起来）：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-seq2seq.gif?raw=true?raw=true" alt="seq2seq">动态图：seq2seq</p>
+<p>如下图所示，以NLP中的机器翻译任务为例，序列指的是一连串的单词，输出也是一连串单词。<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-2-translation.gif?raw=true?raw=true" alt="translation">动态图：translation</p>
+<h3 id="seq2seq细节"><a href="#seq2seq细节" class="headerlink" title="seq2seq细节"></a>seq2seq细节</h3><p>将上图中蓝色的seq2seq模型进行拆解，如下图所示：seq2seq模型由编码器（Encoder）和解码器（Decoder）组成。绿色的编码器会处理输入序列中的每个元素并获得输入信息，这些信息会被转换成为一个黄色的向量（称为context向量）。当我们处理完整个输入序列后，编码器把 context向量 发送给紫色的解码器，解码器通过context向量中的信息，逐个元素输出新的序列。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-3-encoder-decoder.gif?raw=true?raw=true" alt="encoder-decode">动态图：seq2seq中的encoder-decoder</p>
+<p>由于seq2seq模型可以用来解决机器翻译任务，因此机器翻译被任务seq2seq模型解决过程如下图所示，当作seq2seq模型的一个具体例子来学习。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-3-mt.gif?raw=true?raw=true" alt="encoder-decoder">动态图：seq2seq中的encoder-decoder，机器翻译的例子</p>
+<p>深入学习机器翻译任务中的seq2seq模型，如下图所示。seq2seq模型中的编码器和解码器一般采用的是循环神经网络RNN（Transformer模型还没出现的过去时代）。编码器将输入的法语单词序列编码成context向量（在绿色encoder和紫色decoder中间出现），然后解码器根据context向量解码出英语单词序列。<em>关于循环神经网络，本文建议阅读 <a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=UNmqTiOnRfg">Luis Serrano写的循环神经网络精彩介绍</a>.</em></p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-4-context-example.png?raw=true?raw=true" alt="context向量对应图里中间一个浮点数向量。在下文中，我们会可视化这些向量，使用更明亮的色彩来表示更高的值，如上图右边所示"></p>
+<p>图：context向量对应上图中间浮点数向量。在下文中，我们会可视化这些数字向量，使用更明亮的色彩来表示更高的值，如上图右边所示</p>
+<p>如上图所示，我们来看一下黄色的context向量是什么？本质上是一组浮点数。而这个context的数组长度是基于编码器RNN的隐藏层神经元数量的。上图展示了长度为4的context向量，但在实际应用中，context向量的长度是自定义的，比如可能是256，512或者1024。</p>
+<p>那么RNN是如何具体地处理输入序列的呢？</p>
+<ol>
+<li><p>假设序列输入是一个句子，这个句子可以由$n$个词表示：$sentence &#x3D; {w_1, w_2,…,w_n}$。</p>
+</li>
+<li><p>RNN首先将句子中的每一个词映射成为一个向量得到一个向量序列：$X &#x3D; {x_1, x_2,…,x_n}$，每个单词映射得到的向量通常又叫做：word embedding。</p>
+</li>
+<li><p>然后在处理第$t \in [1,n]$个时间步的序列输入$x_t$时，RNN网络的输入和输出可以表示为：$h_{t} &#x3D; RNN(x_t, h_{t-1})$</p>
+<ul>
+<li>输入：RNN在时间步$t$的输入之一为单词$w_t$经过映射得到的向量$x_t$。</li>
+<li>输入：RNN另一个输入为上一个时间步$t-1$得到的hidden state向量$h_{t-1}$，同样是一个向量。</li>
+<li>输出：RNN在时间步$t$的输出为$h_t$ hidden state向量。</li>
+</ul>
+</li>
+</ol>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-5-word-vector.png?raw=true?raw=true" alt="我们在处理单词之前，需要把他们转换为向量。这个转换是使用 word embedding 算法来完成的。我们可以使用预训练好的 embeddings，或者在我们的数据集上训练自己的 embedding。通常 embedding 向量大小是 200 或者 300，为了简单起见，我们这里展示的向量长度是4"> 图：word embedding例子。我们在处理单词之前，需要将单词映射成为向量，通常使用 word embedding 算法来完成。一般来说，我们可以使用提前训练好的 word embeddings，或者在自有的数据集上训练word embedding。为了简单起见，上图展示的word embedding维度是4。上图左边每个单词经过word embedding算法之后得到中间一个对应的4维的向量。</p>
+<p>让我们来进一步可视化一下基于RNN的seq2seq模型中的编码器在第1个时间步是如何工作：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-6-rnn.gif?raw=true?raw=true" alt="rnn"> 动态图：如图所示，RNN在第2个时间步，采用第1个时间步得到hidden state#10（隐藏层状态）和第2个时间步的输入向量input#1，来得到新的输出hidden state#1。</p>
+<p>看下面的动态图，让我们详细观察一下编码器如何在每个时间步得到hidden sate，并将最终的hidden state传输给解码器，解码器根据编码器所给予的最后一个hidden state信息解码处输出序列。注意，最后一个 hidden state实际上是我们上文提到的context向量。<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-6-seq2seq.gif?raw=true?raw=true"> 动态图：编码器逐步得到hidden state并传输最后一个hidden state给解码器。</p>
+<p>接着，结合编码器处理输入序列，一起来看下解码器如何一步步得到输出序列的l。与编码器类似，解码器在每个时间步也会得到 hidden state（隐藏层状态），而且也需要把 hidden state（隐藏层状态）从一个时间步传递到下一个时间步。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-6-seq2seq-decoder.gif?raw=true?raw=true"> 动态图：编码器首先按照时间步依次编码每个法语单词，最终将最后一个hidden state也就是context向量传递给解码器，解码器根据context向量逐步解码得到英文输出。</p>
+<p>目前为止，希望你已经明白了本文开头提出的前两个问题：1. 什么是seq2seq模型？2. seq2seq模型如何处理文本&#x2F;长文本序列？那么请思考第3、4个问题：3. seq2seq模型处理文本序列（特别是长文本序列）时会遇到什么问题？4.基于RNN的seq2seq模型如何结合attention来解决问题3并提升模型效果？</p>
+<h3 id="Attention-1"><a href="#Attention-1" class="headerlink" title="Attention"></a>Attention</h3><p>基于RNN的seq2seq模型编码器所有信息都编码到了一个context向量中，便是这类模型的瓶颈。一方面单个向量很难包含所有文本序列的信息，另一方面RNN递归地编码文本序列使得模型在处理长文本时面临非常大的挑战（比如RNN处理到第500个单词的时候，很难再包含1-499个单词中的所有信息了）。</p>
+<p>面对以上问题，Bahdanau等2014发布的<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a> 和 Luong等2015年发布的<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1508.04025">Effective Approaches to Attention-based Neural Machine Translation
+</a>两篇论文中，提出了一种叫做注意力<strong>attetion</strong>的技术。通过attention技术，seq2seq模型极大地提高了机器翻译的质量。归其原因是：attention注意力机制，使得seq2seq模型可以有区分度、有重点地关注输入序列。</p>
+<p>下图依旧是机器翻译的例子：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-7-attetion.png?raw=true?raw=true" alt="在第7个时间步，注意力机制使得解码器在产生英语翻译之前，可以将注意力集中在 &quot;student&quot; 这个词（在法语里，是 &quot;student&quot; 的意思）。这种从输入序列放大相关信号的能力，使得注意力模型，比没有注意力的模型，产生更好的结果。"> 图：在第 7 个时间步，注意力机制使得解码器在产生英语翻译student英文翻译之前，可以将注意力集中在法语输入序列的：étudiant。这种有区分度得attention到输入序列的重要信息，使得模型有更好的效果。</p>
+<p>让我们继续来理解带有注意力的seq2seq模型：一个注意力模型与经典的seq2seq模型主要有2点不同：</p>
+<ul>
+<li><p>A. 首先，编码器会把更多的数据传递给解码器。编码器把所有时间步的 hidden state（隐藏层状态）传递给解码器，而不是只传递最后一个 hidden state（隐藏层状态），如下面的动态图所示:<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-6-mt-1.gif?raw=true?raw=true"> 动态图: 更多的信息传递给decoder</p>
+</li>
+<li><p>B. 注意力模型的解码器在产生输出之前，做了一个额外的attention处理。如下图所示，具体为：</p>
+<ul>
+<li><ol>
+<li>由于编码器中每个 hidden state（隐藏层状态）都对应到输入句子中一个单词，那么解码器要查看所有接收到的编码器的 hidden state（隐藏层状态）。</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>给每个 hidden state（隐藏层状态）计算出一个分数（我们先忽略这个分数的计算过程）。</li>
+</ol>
+</li>
+<li><ol start="3">
+<li>所有hidden state（隐藏层状态）的分数经过softmax进行归一化。</li>
+</ol>
+</li>
+<li><ol start="4">
+<li>将每个 hidden state（隐藏层状态）乘以所对应的分数，从而能够让高分对应的  hidden state（隐藏层状态）会被放大，而低分对应的  hidden state（隐藏层状态）会被缩小。</li>
+</ol>
+</li>
+<li><ol start="5">
+<li>将所有hidden state根据对应分数进行加权求和，得到对应时间步的context向量。<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-7-attention-dec.gif?raw=true?raw=true"> 动态图：在第4个时间步，编码器结合attention得到context向量的5个步骤。</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>所以，attention可以简单理解为：一种有效的加权求和技术，其艺术在于如何获得权重。</p>
+<p>现在，让我们把所有内容都融合到下面的图中，来看看结合注意力的seq2seq模型解码器全流程，动态图展示的是第4个时间步：</p>
+<ol>
+<li>注意力模型的解码器 RNN 的输入包括：一个word embedding 向量，和一个初始化好的解码器 hidden state，图中是$h_{init}$。</li>
+<li>RNN 处理上述的 2 个输入，产生一个输出和一个新的 hidden state，图中为h4。</li>
+<li>注意力的步骤：我们使用编码器的所有 hidden state向量和 h4 向量来计算这个时间步的context向量（C4）。</li>
+<li>我们把 h4 和 C4 拼接起来，得到一个橙色向量。</li>
+<li>我们把这个橙色向量输入一个前馈神经网络（这个网络是和整个模型一起训练的）。</li>
+<li>根据前馈神经网络的输出向量得到输出单词：假设输出序列可能的单词有N个，那么这个前馈神经网络的输出向量通常是N维的，每个维度的下标对应一个输出单词，每个维度的数值对应的是该单词的输出概率。</li>
+<li>在下一个时间步重复1-6步骤。<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-7-attention-pro.gif?raw=true?raw=true"> 动态图：解码器结合attention全过程</li>
+</ol>
+<p>到目前为止，希望你已经知道本文开头提出的3、4问题的答案啦：3、seq2seq处理长文本序列的挑战是什么？4、seq2seq是如何结合attention来解决问题3中的挑战的？</p>
+<p>最后，我们可视化一下注意力机制，看看在解码器在每个时间步关注了输入序列的哪些部分：<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-7-attention.gif?raw=true?raw=true"> 动态图：解码步骤时候attention关注的词</p>
+<p>需要注意的是：注意力模型不是无意识地把输出的第一个单词对应到输入的第一个单词，它是在训练阶段学习到如何对两种语言的单词进行对应（在我们的例子中，是法语和英语）。</p>
+<p>下图还展示了注意力机制的准确程度（图片来自于上面提到的论文）：<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-8-attention-vis.png?raw=true?raw=true" alt="你可以看到模型在输出 &quot;European Economic Area&quot; 时，注意力分布情况。在法语中，这些单词的顺序，相对于英语，是颠倒的（&quot;européenne économique zone&quot;）。而其他词的顺序是类似的。"> 图：可以看到模型在输出 “European Economic Area” 时，注意力分布情况。在法语中，这些单词的顺序，相对于英语，是颠倒的（”européenne économique zone”）。而其他词的顺序是类似的。</p>
+<p>读懂了attention和seq2seq模型就去github点个<strong>star</strong>打卡一下吧～～</p>
+<h2 id="transformer"><a href="#transformer" class="headerlink" title="transformer"></a>transformer</h2><p>内容组织：</p>
+<ul>
+<li>图解transformer<ul>
+<li>Transformer宏观结构</li>
+<li>Transformer结构细节<ul>
+<li>输入处理<ul>
+<li>词向量</li>
+<li>位置向量</li>
+</ul>
+</li>
+<li>编码器encoder<ul>
+<li>Self-Attention层</li>
+<li>多头注意力机制</li>
+<li>Attention代码实例</li>
+<li>残差连接</li>
+</ul>
+</li>
+<li>解码器</li>
+<li>线性层和softmax</li>
+<li>损失函数</li>
+</ul>
+</li>
+<li>附加资料</li>
+<li>致谢</li>
+</ul>
+</li>
+</ul>
+<p>在学习完<a target="_blank" rel="noopener" href="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/2.1-%E5%9B%BE%E8%A7%A3attention.md">图解attention</a>后，我们知晓了attention为循环神经网络带来的优点。那么有没有一种神经网络结构直接基于attention构造，并且不再依赖RNN、LSTM或者CNN网络结构了呢？答案便是：Transformer。因此，我们将在本小节对Transformer所涉及的细节进行深入探讨。</p>
+<p>Transformer模型在2017年被google提出，直接基于Self-Attention结构，取代了之前NLP任务中常用的RNN神经网络结构，并在WMT2014 Englishto-German和WMT2014 English-to-French两个机器翻译任务上都取得了当时的SOTA。</p>
+<p>与RNN这类神经网络结构相比，Transformer一个巨大的优点是：<strong>模型在处理序列输入时，可以对整个序列输入进行并行计算，不需要按照时间步循环递归处理输入序列。</strong>2.1章节详细介绍了RNN神经网络如何循环递归处理输入序列，欢迎读者复习查阅。</p>
+<p>下图先便是Transformer整体结构图，与篇章2.1中介绍的seq2seq模型类似，Transformer模型结构中的左半部分为编码器（encoder），右半部分为解码器（decoder），下面我们来一步步拆解 Transformer。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-transformer.png?raw=true" alt="transformer"><br>图：transformer模型结构</p>
+<p>注释和引用说明：本文将通过总-分的方式对Transformer进行拆解和讲解，希望有助于帮助初学者理解Transformer模型结构。本文主要参考<a target="_blank" rel="noopener" href="http://jalammar.github.io/illustrated-transformer">illustrated-transformer</a>。</p>
+<h3 id="Transformer宏观结构"><a href="#Transformer宏观结构" class="headerlink" title="Transformer宏观结构"></a>Transformer宏观结构</h3><p>注意：本小节为讲解方式为：总-分，先整体，再局部。</p>
+<p>Transformer最开始提出来解决机器翻译任务，因此可以看作是seq2seq模型的一种。本小节先抛开Transformer模型中结构具体细节，先从seq2seq的角度对Transformer进行宏观结构的学习。以机器翻译任务为例，先将Transformer这种特殊的seqseq模型看作一个黑盒，黑盒的输入是法语文本序列，输出是英语文本序列（对比2.1章节的seq2seq框架知识我们可以发现，Transformer宏观结构属于seq2seq范畴，只是将之前seq2seq中的编码器和解码器，从RNN模型替换成了Transformer模型）。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-input-output.png?raw=true" alt="input-output"><br>图：Transformer黑盒输入和输出</p>
+<p>将上图中的中间部分“THE TRANSFORMER”拆开成seq2seq标准结构，得到下图：左边是编码部分encoders，右边是解码器部分decoders。<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-encoder-decoder.png?raw=true" alt="encoder-decoder"><br>图：encoder-decoder</p>
+<p>下面，再将上图中的编码器和解码器细节绘出，得到下图。我们可以看到，编码部分（encoders）由多层编码器(Encoder)组成（Transformer论文中使用的是6层编码器，这里的层数6并不是固定的，你也可以根据实验效果来修改层数）。同理，解码部分（decoders）也是由多层的解码器(Decoder)组成（论文里也使用了6层解码器）。每层编码器网络结构是一样的，每层解码器网络结构也是一样的。不同层编码器和解码器网络结构不共享参数。<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-2-encoder-detail.png?raw=true" alt="翻译例子"></p>
+<p>图：6层编码和6层解码器</p>
+<p>接下来，我们看一下单层encoder，单层encoder主要由以下两部分组成，如下图所示</p>
+<ul>
+<li>Self-Attention Layer</li>
+<li>Feed Forward Neural Network（前馈神经网络，缩写为 FFNN）</li>
+</ul>
+<p>编码器的输入文本序列$w_1, w_2,…,w_n$最开始需要经过embedding转换，得到每个单词的向量表示$x_1, x_2,…,x_n$，其中$x_i \in \mathbb{R}^{d}$是维度为$d$的向量，然后所有向量经过一个Self-Attention神经网络层进行变换和信息交互得到$h_1, h_2,…h_n$，其中$h_i \in \mathbb{R}^{d}$是维度为$d$的向量。self-attention层处理一个词向量的时候，不仅会使用这个词本身的信息，也会使用句子中其他词的信息（你可以类比为：当我们翻译一个词的时候，不仅会只关注当前的词，也会关注这个词的上下文的其他词的信息）。Self-Attention层的输出会经过前馈神经网络得到新的$x_1, x_2,..,x_n$，依旧是$n$个维度为$d$的向量。这些向量将被送入下一层encoder，继续相同的操作。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-encoder.png?raw=true" alt="encoder"></p>
+<p>图：单层encoder</p>
+<p>与编码器对应，如下图，解码器在编码器的self-attention和FFNN中间插入了一个Encoder-Decoder Attention层，这个层帮助解码器聚焦于输入序列最相关的部分（类似于seq2seq模型中的 Attention）。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-decoder.webp?raw=true" alt="decoder"></p>
+<p>图：单层decoder</p>
+<p>总结一下，我们基本了解了Transformer由编码部分和解码部分组成，而编码部分和解码部分又由多个网络结构相同的编码层和解码层组成。每个编码层由self-attention和FFNN组成，每个解码层由self-attention、FFN和encoder-decoder attention组成。</p>
+<p>以上便是Transformer的宏观结构啦，下面我们开始看宏观结构中的模型细节。</p>
+<h3 id="Transformer结构细节"><a href="#Transformer结构细节" class="headerlink" title="Transformer结构细节"></a>Transformer结构细节</h3><p>了解了Transformer的宏观结构之后。下面，让我们来看看Transformer如何将输入文本序列转换为向量表示，又如何逐层处理这些向量表示得到最终的输出。</p>
+<p>因此本节主要内容依次包含：</p>
+<ul>
+<li>输入处理<ul>
+<li>词向量</li>
+<li>位置向量</li>
+</ul>
+</li>
+<li>编码器</li>
+<li>解码器</li>
+</ul>
+<h4 id="输入处理"><a href="#输入处理" class="headerlink" title="输入处理"></a>输入处理</h4><h5 id="词向量"><a href="#词向量" class="headerlink" title="词向量"></a>词向量</h5><p>和常见的NLP 任务一样，我们首先会使用词嵌入算法（embedding algorithm），将输入文本序列的每个词转换为一个词向量。实际应用中的向量一般是 256 或者 512 维。但为了简化起见，我们这里使用4维的词向量来进行讲解。</p>
+<p>如下图所示，假设我们的输入文本是序列包含了3个词，那么每个词可以通过词嵌入算法得到一个4维向量，于是整个输入被转化成为一个向量序列。在实际应用中，我们通常会同时给模型输入多个句子，如果每个句子的长度不一样，我们会选择一个合适的长度，作为输入文本序列的最大长度：如果一个句子达不到这个长度，那么就填充先填充一个特殊的“padding”词；如果句子超出这个长度，则做截断。最大序列长度是一个超参数，通常希望越大越好，但是更长的序列往往会占用更大的训练显存&#x2F;内存，因此需要在模型训练时候视情况进行决定。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-x.png?raw=true" alt=" 个词向量"><br>图：3个词和对应的词向量</p>
+<p>输入序列每个单词被转换成词向量表示还将加上位置向量来得到该词的最终向量表示。</p>
+<h5 id="位置向量"><a href="#位置向量" class="headerlink" title="位置向量"></a>位置向量</h5><p>如下图所示，Transformer模型对每个输入的词向量都加上了一个位置向量。这些向量有助于确定每个单词的位置特征，或者句子中不同单词之间的距离特征。词向量加上位置向量背后的直觉是：将这些表示位置的向量添加到词向量中，得到的新向量，可以为模型提供更多有意义的信息，比如词的位置，词之间的距离等。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-position.png?raw=true" alt="位置编码"><br>图：位置编码向量</p>
+<p>依旧假设词向量和位置向量的维度是4，我们在下图中展示一种可能的位置向量+词向量：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-position2.png?raw=true" alt="位置编码"><br>图：位置编码向量</p>
+<p>那么带有位置编码信息的向量到底遵循什么模式？原始论文中给出的设计表达式为：<br>$$<br>PE_{(pos,2i)} &#x3D; sin(pos &#x2F; 10000^{2i&#x2F;d_{\text{model}}}) \                                                                       PE_{(pos,2i+1)} &#x3D; cos(pos &#x2F; 10000^{2i&#x2F;d_{\text{model}}})<br>$$<br>上面表达式中的$pos$代表词的位置，$d_{model}$代表位置向量的维度，$i \in [0, d_{model})$代表位置$d_{model}$维位置向量第$i$维。于是根据上述公式，我们可以得到第$pos$位置的$d_{model}$维位置向量。在下图中，我们画出了一种位置向量在第4、5、6、7维度、不同位置的的数值大小。横坐标表示位置下标，纵坐标表示数值大小。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-2-pos-embedding.png?raw=true" alt="位置编码图示"><br>图：位置编码在0-100位置，在4、5、6、7维的数值图示</p>
+<p>当然，上述公式不是唯一生成位置编码向量的方法。但这种方法的优点是：可以扩展到未知的序列长度。例如：当我们的模型需要翻译一个句子，而这个句子的长度大于训练集中所有句子的长度，这时，这种位置编码的方法也可以生成一样长的位置编码向量。</p>
+<h4 id="编码器encoder"><a href="#编码器encoder" class="headerlink" title="编码器encoder"></a>编码器encoder</h4><p>编码部分的输入文本序列经过输入处理之后得到了一个向量序列，这个向量序列将被送入第1层编码器，第1层编码器输出的同样是一个向量序列，再接着送入下一层编码器：第1层编码器的输入是融合位置向量的词向量，<em>更上层编码器的输入则是上一层编码器的输出</em>。</p>
+<p>下图展示了向量序列在单层encoder中的流动：融合位置信息的词向量进入self-attention层，self-attention的输出每个位置的向量再输入FFN神经网络得到每个位置的新向量。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-x-encoder.png?raw=true" alt="输入encoder"><br>图：单层encoder的序列向量流动</p>
+<p>下面再看一个2个单词的例子：<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-multi-encoder.webp?raw=true" alt="一层传一层"><br>图：2个单词的例子：$x_1, x_2 \to z_1, z_2 \to r_1, r_2$</p>
+<h4 id="Self-Attention层"><a href="#Self-Attention层" class="headerlink" title="Self-Attention层"></a>Self-Attention层</h4><p>下面来分析一下上图中Self-Attention层的具体机制。</p>
+<h5 id="Self-Attention概览"><a href="#Self-Attention概览" class="headerlink" title="Self-Attention概览"></a>Self-Attention概览</h5><p>假设我们想要翻译的句子是：</p>
+<figure class="highlight vbnet"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The animal didn<span class="comment">&#x27;t cross the street because it was too tired</span></span><br></pre></td></tr></table></figure>
+<p>这个句子中的 <em>it</em> 是一个指代词，那么 <em>it</em> 指的是什么呢？它是指 <em>animal</em> 还是<em>street</em>？这个问题对人来说，是很简单的，但是对模型来说并不是那么容易。但是，如果模型引入了<em>Self Attention</em>机制之后，便能够让模型把it和animal关联起来了。同样的，当模型处理句子中其他词时，<em>Self Attentio</em>n机制也可以使得模型不仅仅关注当前位置的词，还会关注句子中其他位置的相关的词，进而可以更好地理解当前位置的词。</p>
+<p>与2.1章节中提到的RNN对比一下：RNN 在处理序列中的一个词时，会考虑句子前面的词传过来的<em>hidden state</em>，而<em>hidden state</em>就包含了前面的词的信息；而<em>Self Attention</em>机制值得是，当前词会直接关注到自己句子中前后相关的所有词语，如下图 <em>it</em>的例子：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-attention-word.png?raw=true" alt="一个词和其他词的attention"></p>
+<p>图：一个词和其他词的attention</p>
+<p>上图所示的<em>it</em>是一个真实的例子，是当Transformer在第5层编码器编码“it”时的状态，可视化之后显示<em>it</em>有一部分注意力集中在了“The animal”上，并且把这两个词的信息融合到了”it”中。</p>
+<h5 id="Self-Attention细节"><a href="#Self-Attention细节" class="headerlink" title="Self-Attention细节"></a>Self-Attention细节</h5><p>先通过一个简单的例子来理解一下：什么是“self-attention自注意力机制”？假设一句话包含两个单词：Thinking Machines。自注意力的一种理解是：Thinking-Thinking，Thinking-Machines，Machines-Thinking，Machines-Machines，共$2^2$种两两attention。那么具体如何计算呢？假设Thinking、Machines这两个单词经过词向量算法得到向量是$X_1, X_2$​：<br>$$<br>1: q_1 &#x3D; X_1 W^Q, q_2 &#x3D; X_2 W^Q; k_1 &#x3D; X_1 W^K, k_2 &#x3D; X_2 W^K;v_1 &#x3D; X_1 W^V, v_2 &#x3D; X_2 W^V, W^Q, W^K, W^K \in \mathbb{R}^{d_x \times d_k}\<br>2-3: score_{11} &#x3D; \frac{q_1 \cdot q_1}{\sqrt{d_k}} , score_{12} &#x3D; \frac{q_1 \cdot q_2}{\sqrt{d_k}} ; score_{21} &#x3D; \frac{q_2 \cdot q_1}{\sqrt{d_k}}, score_{22} &#x3D; \frac{q_2 \cdot q_2}{\sqrt{d_k}}; \<br>4: score_{11} &#x3D; \frac{e^{score_{11}}}{e^{score_{11}} + e^{score_{12}}},score_{12} &#x3D; \frac{e^{score_{12}}}{e^{score_{11}} + e^{score_{12}}}; score_{21} &#x3D; \frac{e^{score_{21}}}{e^{score_{21}} + e^{score_{22}}},score_{22} &#x3D; \frac{e^{score_{22}}}{e^{score_{21}} + e^{score_{22}}} \<br>5-6: z_1 &#x3D; v_1 \times score_{11} + v_2 \times score_{12}; z_2 &#x3D; v_1 \times score_{21} + v_2 \times score_{22}<br>$$<br>下面，我们将上诉self-attention计算的6个步骤进行可视化。</p>
+<p>第1步：对输入编码器的词向量进行线性变换得到：Query向量: $q_1, q_2$，Key向量: $k_1, k_2$，Value向量: $v_1, v_2$。这3个向量是词向量分别和3个参数矩阵相乘得到的，而这个矩阵也是是模型要学习的参数。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-qkv.png?raw=true" alt="Q,K,V">图：计算Query向量：$q_1, q_2$，Key向量: $k_1, k_2$，Value向量: $v_1, v_2$。</p>
+<p>Query 向量，Key 向量，Value 向量是什么含义呢？</p>
+<p>其实它们就是 3 个向量，给它们加上一个名称，可以让我们更好地理解 Self-Attention 的计算过程和逻辑。attention计算的逻辑常常可以描述为：<strong>query和key计算相关或者叫attention得分，然后根据attention得分对value进行加权求和。</strong></p>
+<p>第2步：计算Attention Score（注意力分数）。假设我们现在计算第一个词<em>Thinking</em> 的Attention Score（注意力分数），需要根据<em>Thinking</em> 对应的词向量，对句子中的其他词向量都计算一个分数。这些分数决定了我们在编码<em>Thinking</em>这个词时，需要对句子中其他位置的词向量的权重。</p>
+<p>Attention score是根据”<em>Thinking</em>“ 对应的 Query 向量和其他位置的每个词的 Key 向量进行点积得到的。Thinking的第一个Attention Score就是$q_1$和$k_1$的内积，第二个分数就是$q_1$和$k_2$的点积。这个计算过程在下图中进行了展示，下图里的具体得分数据是为了表达方便而自定义的。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-think.png?raw=true" alt="Thinking计算"><br>图：Thinking的Attention Score计算</p>
+<p>第3步：把每个分数除以 $\sqrt{d_k}$，$d_{k}$是Key向量的维度。你也可以除以其他数，除以一个数是为了在反向传播时，求梯度时更加稳定。</p>
+<p>第4步：接着把这些分数经过一个Softmax函数，Softmax可以将分数归一化，这样使得分数都是正数并且加起来等于1， 如下图所示。<br>这些分数决定了Thinking词向量，对其他所有位置的词向量分别有多少的注意力。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-think2.png?raw=true" alt="Thinking计算"><br>图：Thinking的Attention Score计算</p>
+<p>第5步：得到每个词向量的分数后，将分数分别与对应的Value向量相乘。这种做法背后的直觉理解就是：对于分数高的位置，相乘后的值就越大，我们把更多的注意力放到了它们身上；对于分数低的位置，相乘后的值就越小，这些位置的词可能是相关性不大的。</p>
+<p>第6步：把第5步得到的Value向量相加，就得到了Self Attention在当前位置（这里的例子是第1个位置）对应的输出。</p>
+<p>最后，在下图展示了 对第一个位置词向量计算Self Attention 的全过程。最终得到的当前位置（这里的例子是第一个位置）词向量会继续输入到前馈神经网络。注意：上面的6个步骤每次只能计算一个位置的输出向量，在实际的代码实现中，Self Attention的计算过程是使用矩阵快速计算的，一次就得到所有位置的输出向量。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-sum.png?raw=true" alt="Think计算"><br>图：Thinking经过attention之后的向量表示$z_1$</p>
+<h5 id="Self-Attention矩阵计算"><a href="#Self-Attention矩阵计算" class="headerlink" title="Self-Attention矩阵计算"></a>Self-Attention矩阵计算</h5><p>将self-attention计算6个步骤中的向量放一起，比如$X&#x3D;[x_1;x_2]$​，便可以进行矩阵计算啦。下面，依旧按步骤展示self-attention的矩阵计算方法。<br>$$<br>X &#x3D; [X_1;X_2] \<br>Q &#x3D; X W^Q, K &#x3D; X W^K, V&#x3D;X W^V \<br>Z &#x3D; softmax(\frac{QK^T}{\sqrt{d_k}}) V<br>$$<br>第1步：计算 Query，Key，Value 的矩阵。首先，我们把所有词向量放到一个矩阵X中，然后分别和3个权重矩阵$W^Q, W^K W^V$ 相乘，得到 Q，K，V 矩阵。矩阵X中的每一行，表示句子中的每一个词的词向量。Q，K，V 矩阵中的每一行表示 Query向量，Key向量，Value 向量，向量维度是$d_k$。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-qkv-multi.png?raw=true">图：QKV矩阵乘法</p>
+<p>第2步：由于我们使用了矩阵来计算，我们可以把上面的第 2 步到第 6 步压缩为一步，直接得到 Self Attention 的输出。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-attention-output.webp?raw=true" alt="输出"><br>图：得到输出$Z$</p>
+<h5 id="多头注意力机制"><a href="#多头注意力机制" class="headerlink" title="多头注意力机制"></a>多头注意力机制</h5><p>Transformer 的论文通过增加多头注意力机制（一组注意力称为一个 attention head），进一步完善了Self-Attention。这种机制从如下两个方面增强了attention层的能力：</p>
+<ul>
+<li><strong>它扩展了模型关注不同位置的能力</strong>。在上面的例子中，第一个位置的输出$z_1$​包含了句子中其他每个位置的很小一部分信息，但$z_1$​仅仅是单个向量，所以可能仅由第1个位置的信息主导了。而当我们翻译句子：<code>The animal didn’t cross the street because it was too tired</code>时，我们不仅希望模型关注到”it”本身，还希望模型关注到”The”和“animal”，甚至关注到”tired”。这时，多头注意力机制会有帮助。</li>
+<li><strong>多头注意力机制赋予attention层多个“子表示空间”</strong>。下面我们会看到，多头注意力机制会有多组$W^Q, W^K W^V$​ 的权重矩阵（在 Transformer 的论文中，使用了 8 组注意力),，因此可以将$X$​变换到更多种子空间进行表示。接下来我们也使用8组注意力头（attention heads））。每一组注意力的权重矩阵都是随机初始化的，但经过训练之后，每一组注意力的权重$W^Q, W^K W^V$​ 可以把输入的向量映射到一个对应的”子表示空间“。</li>
+</ul>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-multi-head.png?raw=true" alt="多头注意力机制"><br>图：多头注意力机制</p>
+<p>在多头注意力机制中，我们为每组注意力设定单独的 WQ, WK, WV 参数矩阵。将输入X和每组注意力的WQ, WK, WV 相乘，得到8组 Q, K, V 矩阵。</p>
+<p>接着，我们把每组 K, Q, V 计算得到每组的 Z 矩阵，就得到8个Z矩阵。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-8z.webp?raw=true" alt="8 个 Z 矩阵"><br>图：8 个 Z 矩阵</p>
+<p>由于前馈神经网络层接收的是 1 个矩阵（其中每行的向量表示一个词），而不是 8 个矩阵，所以我们直接把8个子矩阵拼接起来得到一个大的矩阵，然后和另一个权重矩阵$W^O$相乘做一次变换，映射到前馈神经网络层所需要的维度。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-to1.webp?raw=true" alt="整合矩阵"><br>图：拼接8个子矩阵并进行映射变换</p>
+<p>总结一下就是：</p>
+<ol>
+<li>把8个矩阵 {Z0,Z1…,Z7} 拼接起来</li>
+<li>把拼接后的矩阵和WO权重矩阵相乘</li>
+<li>得到最终的矩阵Z，这个矩阵包含了所有 attention heads（注意力头） 的信息。这个矩阵会输入到FFNN (Feed Forward Neural Network)层。</li>
+</ol>
+<p>以上就是多头注意力的全部内容。最后将所有内容放到一张图中：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-put-together.webp?raw=true" alt="放在一起"><br>图：多头注意力机制的矩阵运算</p>
+<p>学习了多头注意力机制，让我们再来看下当我们前面提到的it例子，不同的attention heads （注意力头）对应的“it”attention了哪些内容。下图中的绿色和橙色线条分别表示2组不同的attentin heads：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-it-attention.webp?raw=true" alt="`it`的attention"><br>图：<code>it</code>的attention</p>
+<p>当我们编码单词”it”时，其中一个 attention head （橙色注意力头）最关注的是”the animal”，另外一个绿色 attention head 关注的是”tired”。因此在某种意义上，”it”在模型中的表示，融合了”animal”和”tire”的部分表达。</p>
+<h5 id="残差连接"><a href="#残差连接" class="headerlink" title="残差连接"></a>残差连接</h5><p>到目前为止，我们计算得到了self-attention的输出向量。而单层encoder里后续还有两个重要的操作：残差链接、标准化。</p>
+<p>编码器的每个子层（Self Attention 层和 FFNN）都有一个残差连接和层标准化（layer-normalization），如下图所示。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-resnet.png?raw=true" alt="残差连接"><br>图：残差连接</p>
+<p>将 Self-Attention 层的层标准化（layer-normalization）和涉及的向量计算细节都进行可视化，如下所示：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-lyn.png?raw=true" alt="标准化"><br>图：标准化细节</p>
+<p>编码器和和解码器的子层里面都有层标准化（layer-normalization）。假设一个 Transformer 是由 2 层编码器和两层解码器组成的，将全部内部细节展示起来如下图所示。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-2layer.png?raw=true" alt="2层示意图"><br>图：2层Transformer示意图</p>
+<h4 id="解码器"><a href="#解码器" class="headerlink" title="解码器"></a>解码器</h4><p>现在我们已经介绍了编码器中的大部分概念，我们也基本知道了编码器的原理。现在让我们来看下， 编码器和解码器是如何协同工作的。</p>
+<p>编码器一般有多层，第一个编码器的输入是一个序列文本，最后一个编码器输出是一组序列向量，这组序列向量会作为解码器的K、V输入，其中K&#x3D;V&#x3D;解码器输出的序列向量表示。这些注意力向量将会输入到每个解码器的Encoder-Decoder Attention层，这有助于解码器把注意力集中到输入序列的合适位置，如下图所示。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/transformer_decoding_1.gif?raw=true"></p>
+<p>解码（decoding ）阶段的每一个时间步都输出一个翻译后的单词（这里的例子是英语翻译），解码器当前时间步的输出又重新作为输入Q和编码器的输出K、V共同作为下一个时间步解码器的输入。然后重复这个过程，直到输出一个结束符。如下图所示：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-decoder.gif?raw=true" alt="decoder动态图"><br>动态图：decoder动态图</p>
+<p>解码器中的 Self Attention 层，和编码器中的 Self Attention 层的区别：</p>
+<ol>
+<li>在解码器里，Self Attention 层只允许关注到输出序列中早于当前位置之前的单词。具体做法是：在 Self Attention 分数经过 Softmax 层之前，屏蔽当前位置之后的那些位置（将attention score设置成-inf）。</li>
+<li>解码器 Attention层是使用前一层的输出来构造Query 矩阵，而Key矩阵和 Value矩阵来自于编码器最终的输出。</li>
+</ol>
+<h4 id="线性层和softmax"><a href="#线性层和softmax" class="headerlink" title="线性层和softmax"></a>线性层和softmax</h4><p>Decoder 最终的输出是一个向量，其中每个元素是浮点数。我们怎么把这个向量转换为单词呢？这是线性层和softmax完成的。</p>
+<p>线性层就是一个普通的全连接神经网络，可以把解码器输出的向量，映射到一个更大的向量，这个向量称为 logits 向量：假设我们的模型有 10000 个英语单词（模型的输出词汇表），此 logits 向量便会有 10000 个数字，每个数表示一个单词的分数。</p>
+<p>然后，Softmax 层会把这些分数转换为概率（把所有的分数转换为正数，并且加起来等于 1）。然后选择最高概率的那个数字对应的词，就是这个时间步的输出单词。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-linear.png?raw=true" alt="线性层"><br>图：线性层</p>
+<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>Transformer训练的时候，需要将解码器的输出和label一同送入损失函数，以获得loss，最终模型根据loss进行方向传播。这一小节，我们用一个简单的例子来说明训练过程的loss计算：把“merci”翻译为“thanks”。</p>
+<p>我们希望模型解码器最终输出的概率分布，会指向单词 ”thanks“（在“thanks”这个词的概率最高）。但是，一开始模型还没训练好，它输出的概率分布可能和我们希望的概率分布相差甚远，如下图所示，正确的概率分布应该是“thanks”单词的概率最大。但是，由于模型的参数都是随机初始化的，所示一开始模型预测所有词的概率几乎都是随机的。</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-loss.webp?raw=true" alt="概率分布"><br>图：概率分布</p>
+<p>只要Transformer解码器预测了组概率，我们就可以把这组概率和正确的输出概率做对比，然后使用反向传播来调整模型的权重，使得输出的概率分布更加接近整数输出。</p>
+<p>那我们要怎么比较两个概率分布呢？：我们可以简单的用两组概率向量的的空间距离作为loss（向量相减，然后求平方和，再开方），当然也可以使用交叉熵(cross-entropy)]和KL 散度(Kullback–Leibler divergence)。读者可以进一步检索阅读相关知识，损失函数的知识不在本小节展开。</p>
+<p>由于上面仅有一个单词的例子太简单了，我们可以再看一个复杂一点的句子。句子输入是：“je suis étudiant” ，输出是：“i am a student”。这意味着，我们的transformer模型解码器要多次输出概率分布向量：</p>
+<ul>
+<li>每次输出的概率分布都是一个向量，长度是 vocab_size（前面约定最大vocab size，也就是向量长度是 6，但实际中的vocab size更可能是 30000 或者 50000）</li>
+<li>第1次输出的概率分布中，最高概率对应的单词是 “i”</li>
+<li>第2次输出的概率分布中，最高概率对应的单词是 “am”</li>
+<li>以此类推，直到第 5 个概率分布中，最高概率对应的单词是 “&lt;eos&gt;”，表示没有下一个单词了</li>
+</ul>
+<p>于是我们目标的概率分布长下面这个样子：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-target.png?raw=true" alt="概率分布"><br>图：目标概率分布</p>
+<p>我们用例子中的句子训练模型，希望产生图中所示的概率分布<br>我们的模型在一个足够大的数据集上，经过足够长时间的训练后，希望输出的概率分布如下图所示：</p>
+<p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-trained.webp?raw=true" alt="训练后概率分布"><br>图：模型训练后输出的多个概率分布</p>
+<p>我们希望模型经过训练之后可以输出的概率分布也就对应了正确的翻译。当然，如果你要翻译的句子是训练集中的一部分，那输出的结果并不能说明什么。我们希望模型在没见过的句子上也能够准确翻译。</p>
+<p>额外提一下greedy decoding和beam search的概念：</p>
+<ul>
+<li>Greedy decoding：由于模型每个时间步只产生一个输出，我们这样看待：模型是从概率分布中选择概率最大的词，并且丢弃其他词。这种方法叫做贪婪解码（greedy decoding）。</li>
+<li>Beam search：每个时间步保留k个最高概率的输出词，然后在下一个时间步，根据上一个时间步保留的k个词来确定当前应该保留哪k个词。假设k&#x3D;2，第一个位置概率最高的两个输出的词是”I“和”a“，这两个词都保留，然后根据第一个词计算第2个位置的词的概率分布，再取出第2个位置上2个概率最高的词。对于第3个位置和第4个位置，我们也重复这个过程。这种方法称为集束搜索(beam search)。</li>
+</ul>
+<h3 id="附加资料"><a href="#附加资料" class="headerlink" title="附加资料"></a>附加资料</h3><p>我希望上面讲的内容，可以帮助你理解 Transformer 中的主要概念。如果你想更深一步地理解，我建议你可以参考下面这些：</p>
+<ul>
+<li>阅读 Transformer 的论文：<br>《Attention Is All You Need》<br>链接地址：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a></li>
+<li>阅读Transformer 的博客文章：<br>《Transformer: A Novel Neural Network Architecture for Language Understanding》<br>链接地址：<a target="_blank" rel="noopener" href="https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html">https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html</a><br>阅读《Tensor2Tensor announcement》</li>
+<li>链接地址：<a target="_blank" rel="noopener" href="https://ai.googleblog.com/2017/06/accelerating-deep-learning-research.html">https://ai.googleblog.com/2017/06/accelerating-deep-learning-research.html</a></li>
+<li>观看视频 【Łukasz Kaiser’s talk】来理解模型和其中的细节<br>链接地址：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=rBCqOTEfxvg">https://www.youtube.com/watch?v=rBCqOTEfxvg</a><br>运行这份代码：【Jupyter Notebook provided as part of the Tensor2Tensor repo】</li>
+<li>链接地址：<a target="_blank" rel="noopener" href="https://colab.research.google.com/github/tensorflow/tensor2tensor/blob/master/tensor2tensor/notebooks/hello_t2t.ipynb%E3%80%82">https://colab.research.google.com/github/tensorflow/tensor2tensor/blob/master/tensor2tensor/notebooks/hello_t2t.ipynb。</a></li>
+<li>查看这个项目：【Tensor2Tensor repo】<br>链接地址：<a target="_blank" rel="noopener" href="https://github.com/tensorflow/tensor2tensor">https://github.com/tensorflow/tensor2tensor</a></li>
+</ul>
+<h1 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h1><h2 id="具体配置"><a href="#具体配置" class="headerlink" title="具体配置"></a>具体配置</h2><p>我从云服务器平台租GPU来完成模型训练，以下是设备型号和CUDA版本<br><img src="/.com//image.png" alt="alt text"><br>外部库版本如下<br>torch                          1.10.0+cu113</p>
+<p>torchaudio                     0.10.0+cu113</p>
+<p>torchtext                      0.4.0</p>
+<p>torchvision                    0.11.0+cu113</p>
+<p>tqdm                           4.61.2</p>
+<p>sentencepiece                  0.1.99</p>
+<p>pandas                         2.0.3</p>
+<p>pickleshare                    0.7.5</p>
+<p>numpy                          1.24.4</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/06/23/lab13/" rel="prev" title="机器翻译">
+      <i class="fa fa-chevron-left"></i> 机器翻译
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">背景知识</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Attention"><span class="nav-number">1.1.</span> <span class="nav-text">Attention</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#seq2seq%E6%A1%86%E6%9E%B6"><span class="nav-number">1.1.1.</span> <span class="nav-text">seq2seq框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#seq2seq%E7%BB%86%E8%8A%82"><span class="nav-number">1.1.2.</span> <span class="nav-text">seq2seq细节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Attention-1"><span class="nav-number">1.1.3.</span> <span class="nav-text">Attention</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#transformer"><span class="nav-number">1.2.</span> <span class="nav-text">transformer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Transformer%E5%AE%8F%E8%A7%82%E7%BB%93%E6%9E%84"><span class="nav-number">1.2.1.</span> <span class="nav-text">Transformer宏观结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Transformer%E7%BB%93%E6%9E%84%E7%BB%86%E8%8A%82"><span class="nav-number">1.2.2.</span> <span class="nav-text">Transformer结构细节</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%93%E5%85%A5%E5%A4%84%E7%90%86"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">输入处理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AF%8D%E5%90%91%E9%87%8F"><span class="nav-number">1.2.2.1.1.</span> <span class="nav-text">词向量</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%8D%E7%BD%AE%E5%90%91%E9%87%8F"><span class="nav-number">1.2.2.1.2.</span> <span class="nav-text">位置向量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%96%E7%A0%81%E5%99%A8encoder"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">编码器encoder</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Self-Attention%E5%B1%82"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">Self-Attention层</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Self-Attention%E6%A6%82%E8%A7%88"><span class="nav-number">1.2.2.3.1.</span> <span class="nav-text">Self-Attention概览</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Self-Attention%E7%BB%86%E8%8A%82"><span class="nav-number">1.2.2.3.2.</span> <span class="nav-text">Self-Attention细节</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Self-Attention%E7%9F%A9%E9%98%B5%E8%AE%A1%E7%AE%97"><span class="nav-number">1.2.2.3.3.</span> <span class="nav-text">Self-Attention矩阵计算</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6"><span class="nav-number">1.2.2.3.4.</span> <span class="nav-text">多头注意力机制</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5"><span class="nav-number">1.2.2.3.5.</span> <span class="nav-text">残差连接</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E7%A0%81%E5%99%A8"><span class="nav-number">1.2.2.4.</span> <span class="nav-text">解码器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E5%B1%82%E5%92%8Csoftmax"><span class="nav-number">1.2.2.5.</span> <span class="nav-text">线性层和softmax</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-number">1.2.2.6.</span> <span class="nav-text">损失函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%84%E5%8A%A0%E8%B5%84%E6%96%99"><span class="nav-number">1.2.3.</span> <span class="nav-text">附加资料</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">代码实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E9%85%8D%E7%BD%AE"><span class="nav-number">2.1.</span> <span class="nav-text">具体配置</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁 而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">75k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:09</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

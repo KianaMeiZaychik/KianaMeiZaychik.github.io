@@ -85,7 +85,7 @@
 <meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/lab14-6.png?raw=true">
 <meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/lab14-7.png?raw=true">
 <meta property="article:published_time" content="2024-06-24T15:00:00.000Z">
-<meta property="article:modified_time" content="2024-06-24T04:30:12.611Z">
+<meta property="article:modified_time" content="2024-06-24T04:35:28.945Z">
 <meta property="article:author" content="闲云">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-seq2seq.gif?raw=true">
@@ -247,7 +247,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-06-24 23:00:00 / 修改时间：12:30:12" itemprop="dateCreated datePublished" datetime="2024-06-24T23:00:00+08:00">2024-06-24</time>
+              <time title="创建时间：2024-06-24 23:00:00 / 修改时间：12:35:28" itemprop="dateCreated datePublished" datetime="2024-06-24T23:00:00+08:00">2024-06-24</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -376,9 +376,7 @@
 <p>与RNN这类神经网络结构相比，Transformer一个巨大的优点是：<strong>模型在处理序列输入时，可以对整个序列输入进行并行计算，不需要按照时间步循环递归处理输入序列。</strong>2.1章节详细介绍了RNN神经网络如何循环递归处理输入序列，欢迎读者复习查阅。</p>
 <p>下图先便是Transformer整体结构图，与篇章2.1中介绍的seq2seq模型类似，Transformer模型结构中的左半部分为编码器（encoder），右半部分为解码器（decoder），下面我们来一步步拆解 Transformer。</p>
 <p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-transformer.png?raw=true" alt="transformer"><br>图：transformer模型结构</p>
-<p>注释和引用说明：本文将通过总-分的方式对Transformer进行拆解和讲解，希望有助于帮助初学者理解Transformer模型结构。本文主要参考<a target="_blank" rel="noopener" href="http://jalammar.github.io/illustrated-transformer">illustrated-transformer</a>。</p>
-<h3 id="Transformer宏观结构"><a href="#Transformer宏观结构" class="headerlink" title="Transformer宏观结构"></a>Transformer宏观结构</h3><p>注意：本小节为讲解方式为：总-分，先整体，再局部。</p>
-<p>Transformer最开始提出来解决机器翻译任务，因此可以看作是seq2seq模型的一种。本小节先抛开Transformer模型中结构具体细节，先从seq2seq的角度对Transformer进行宏观结构的学习。以机器翻译任务为例，先将Transformer这种特殊的seqseq模型看作一个黑盒，黑盒的输入是法语文本序列，输出是英语文本序列（对比2.1章节的seq2seq框架知识我们可以发现，Transformer宏观结构属于seq2seq范畴，只是将之前seq2seq中的编码器和解码器，从RNN模型替换成了Transformer模型）。</p>
+<h3 id="Transformer宏观结构"><a href="#Transformer宏观结构" class="headerlink" title="Transformer宏观结构"></a>Transformer宏观结构</h3><p>Transformer最开始提出来解决机器翻译任务，因此可以看作是seq2seq模型的一种。本小节先抛开Transformer模型中结构具体细节，先从seq2seq的角度对Transformer进行宏观结构的学习。以机器翻译任务为例，先将Transformer这种特殊的seqseq模型看作一个黑盒，黑盒的输入是法语文本序列，输出是英语文本序列（对比2.1章节的seq2seq框架知识我们可以发现，Transformer宏观结构属于seq2seq范畴，只是将之前seq2seq中的编码器和解码器，从RNN模型替换成了Transformer模型）。</p>
 <p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-input-output.png?raw=true" alt="input-output"><br>图：Transformer黑盒输入和输出</p>
 <p>将上图中的中间部分“THE TRANSFORMER”拆开成seq2seq标准结构，得到下图：左边是编码部分encoders，右边是解码器部分decoders。<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-encoder-decoder.png?raw=true" alt="encoder-decoder"><br>图：encoder-decoder</p>
 <p>下面，再将上图中的编码器和解码器细节绘出，得到下图。我们可以看到，编码部分（encoders）由多层编码器(Encoder)组成（Transformer论文中使用的是6层编码器，这里的层数6并不是固定的，你也可以根据实验效果来修改层数）。同理，解码部分（decoders）也是由多层的解码器(Decoder)组成（论文里也使用了6层解码器）。每层编码器网络结构是一样的，每层解码器网络结构也是一样的。不同层编码器和解码器网络结构不共享参数。<br><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-2-encoder-detail.png?raw=true" alt="翻译例子"></p>
@@ -416,11 +414,11 @@
 <h5 id="Self-Attention概览"><a href="#Self-Attention概览" class="headerlink" title="Self-Attention概览"></a>Self-Attention概览</h5><p>假设我们想要翻译的句子是：</p>
 <figure class="highlight vbnet"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The animal didn<span class="comment">&#x27;t cross the street because it was too tired</span></span><br></pre></td></tr></table></figure>
 <p>这个句子中的 <em>it</em> 是一个指代词，那么 <em>it</em> 指的是什么呢？它是指 <em>animal</em> 还是<em>street</em>？这个问题对人来说，是很简单的，但是对模型来说并不是那么容易。但是，如果模型引入了<em>Self Attention</em>机制之后，便能够让模型把it和animal关联起来了。同样的，当模型处理句子中其他词时，<em>Self Attentio</em>n机制也可以使得模型不仅仅关注当前位置的词，还会关注句子中其他位置的相关的词，进而可以更好地理解当前位置的词。</p>
-<p>与2.1章节中提到的RNN对比一下：RNN 在处理序列中的一个词时，会考虑句子前面的词传过来的<em>hidden state</em>，而<em>hidden state</em>就包含了前面的词的信息；而<em>Self Attention</em>机制值得是，当前词会直接关注到自己句子中前后相关的所有词语，如下图 <em>it</em>的例子：</p>
+<p>与RNN对比一下：RNN 在处理序列中的一个词时，会考虑句子前面的词传过来的<em>hidden state</em>，而<em>hidden state</em>就包含了前面的词的信息；而<em>Self Attention</em>机制值得是，当前词会直接关注到自己句子中前后相关的所有词语，如下图 <em>it</em>的例子：</p>
 <p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-attention-word.png?raw=true" alt="一个词和其他词的attention"></p>
 <p>图：一个词和其他词的attention</p>
 <p>上图所示的<em>it</em>是一个真实的例子，是当Transformer在第5层编码器编码“it”时的状态，可视化之后显示<em>it</em>有一部分注意力集中在了“The animal”上，并且把这两个词的信息融合到了”it”中。</p>
-<h5 id="Self-Attention细节"><a href="#Self-Attention细节" class="headerlink" title="Self-Attention细节"></a>Self-Attention细节</h5><p>先通过一个简单的例子来理解一下：什么是“self-attention自注意力机制”？假设一句话包含两个单词：Thinking Machines。自注意力的一种理解是：Thinking-Thinking，Thinking-Machines，Machines-Thinking，Machines-Machines，共$2^2$种两两attention。那么具体如何计算呢？假设Thinking、Machines这两个单词经过词向量算法得到向量是$X_1, X_2$​：<br>$$<br>1: q_1 &#x3D; X_1 W^Q, q_2 &#x3D; X_2 W^Q; k_1 &#x3D; X_1 W^K, k_2 &#x3D; X_2 W^K;v_1 &#x3D; X_1 W^V, v_2 &#x3D; X_2 W^V, W^Q, W^K, W^K \in \mathbb{R}^{d_x \times d_k}\<br>2-3: score_{11} &#x3D; \frac{q_1 \cdot q_1}{\sqrt{d_k}} , score_{12} &#x3D; \frac{q_1 \cdot q_2}{\sqrt{d_k}} ; score_{21} &#x3D; \frac{q_2 \cdot q_1}{\sqrt{d_k}}, score_{22} &#x3D; \frac{q_2 \cdot q_2}{\sqrt{d_k}}; \<br>4: score_{11} &#x3D; \frac{e^{score_{11}}}{e^{score_{11}} + e^{score_{12}}},score_{12} &#x3D; \frac{e^{score_{12}}}{e^{score_{11}} + e^{score_{12}}}; score_{21} &#x3D; \frac{e^{score_{21}}}{e^{score_{21}} + e^{score_{22}}},score_{22} &#x3D; \frac{e^{score_{22}}}{e^{score_{21}} + e^{score_{22}}} \<br>5-6: z_1 &#x3D; v_1 \times score_{11} + v_2 \times score_{12}; z_2 &#x3D; v_1 \times score_{21} + v_2 \times score_{22}<br>$$<br>下面，我们将上诉self-attention计算的6个步骤进行可视化。</p>
+<h5 id="Self-Attention细节"><a href="#Self-Attention细节" class="headerlink" title="Self-Attention细节"></a>Self-Attention细节</h5><p>先通过一个简单的例子来理解一下：什么是“self-attention自注意力机制”？假设一句话包含两个单词：Thinking Machines。自注意力的一种理解是：Thinking-Thinking，Thinking-Machines，Machines-Thinking，Machines-Machines，共$2^2$种两两attention。那么具体如何计算呢？假设Thinking、Machines这两个单词经过词向量算法得到向量是$X_1, X_2$​：<br>$$<br>1: q_1 &#x3D; X_1 W^Q, q_2 &#x3D; X_2 W^Q; k_1 &#x3D; X_1 W^K, k_2 &#x3D; X_2 W^K;v_1 &#x3D; X_1 W^V, v_2 &#x3D; X_2 W^V, W^Q, W^K, W^K \in \mathbb{R}^{d_x \times d_k}\\<br>2-3: score_{11} &#x3D; \frac{q_1 \cdot q_1}{\sqrt{d_k}} , score_{12} &#x3D; \frac{q_1 \cdot q_2}{\sqrt{d_k}} ; score_{21} &#x3D; \frac{q_2 \cdot q_1}{\sqrt{d_k}}, score_{22} &#x3D; \frac{q_2 \cdot q_2}{\sqrt{d_k}}; \\<br>4: score_{11} &#x3D; \frac{e^{score_{11}}}{e^{score_{11}} + e^{score_{12}}},score_{12} &#x3D; \frac{e^{score_{12}}}{e^{score_{11}} + e^{score_{12}}}; score_{21} &#x3D; \frac{e^{score_{21}}}{e^{score_{21}} + e^{score_{22}}},score_{22} &#x3D; \frac{e^{score_{22}}}{e^{score_{21}} + e^{score_{22}}} \\<br>5-6: z_1 &#x3D; v_1 \times score_{11} + v_2 \times score_{12}; z_2 &#x3D; v_1 \times score_{21} + v_2 \times score_{22}<br>$$<br>下面，我们将上诉self-attention计算的6个步骤进行可视化。</p>
 <p>第1步：对输入编码器的词向量进行线性变换得到：Query向量: $q_1, q_2$，Key向量: $k_1, k_2$，Value向量: $v_1, v_2$。这3个向量是词向量分别和3个参数矩阵相乘得到的，而这个矩阵也是是模型要学习的参数。</p>
 <p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-qkv.png?raw=true" alt="Q,K,V">图：计算Query向量：$q_1, q_2$，Key向量: $k_1, k_2$，Value向量: $v_1, v_2$。</p>
 <p>Query 向量，Key 向量，Value 向量是什么含义呢？</p>

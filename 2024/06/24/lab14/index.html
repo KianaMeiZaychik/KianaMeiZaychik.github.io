@@ -85,7 +85,7 @@
 <meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/lab14-6.png?raw=true">
 <meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/lab14-7.png?raw=true">
 <meta property="article:published_time" content="2024-06-24T15:00:00.000Z">
-<meta property="article:modified_time" content="2024-06-24T09:35:36.639Z">
+<meta property="article:modified_time" content="2024-06-24T09:48:06.448Z">
 <meta property="article:author" content="闲云">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/1-seq2seq.gif?raw=true">
@@ -247,7 +247,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-06-24 23:00:00 / 修改时间：17:35:36" itemprop="dateCreated datePublished" datetime="2024-06-24T23:00:00+08:00">2024-06-24</time>
+              <time title="创建时间：2024-06-24 23:00:00 / 修改时间：17:48:06" itemprop="dateCreated datePublished" datetime="2024-06-24T23:00:00+08:00">2024-06-24</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -431,13 +431,13 @@
 <p>第6步：把第5步得到的Value向量相加，就得到了Self Attention在当前位置（这里的例子是第1个位置）对应的输出。</p>
 <p>最后，在下图展示了 对第一个位置词向量计算Self Attention 的全过程。最终得到的当前位置（这里的例子是第一个位置）词向量会继续输入到前馈神经网络。注意：上面的6个步骤每次只能计算一个位置的输出向量，在实际的代码实现中，Self Attention的计算过程是使用矩阵快速计算的，一次就得到所有位置的输出向量。</p>
 <p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-sum.png?raw=true" alt="Think计算"><br>图：Thinking经过attention之后的向量表示$z_1$</p>
-<h5 id="Self-Attention矩阵计算"><a href="#Self-Attention矩阵计算" class="headerlink" title="Self-Attention矩阵计算"></a>Self-Attention矩阵计算</h5><p>将self-attention计算6个步骤中的向量放一起，比如$X&#x3D;[x_1;x_2]$​，便可以进行矩阵计算啦。下面，依旧按步骤展示self-attention的矩阵计算方法。<br>$$<br>X &#x3D; [X_1;X_2] \\<br>Q &#x3D; X W^Q, K &#x3D; X W^K, V&#x3D;X W^V \\<br>Z &#x3D; softmax(\frac{QK^T}{\sqrt{d_k}}) V<br>$$<br>第1步：计算 Query，Key，Value 的矩阵。首先，我们把所有词向量放到一个矩阵X中，然后分别和3个权重矩阵$W^Q, W^K W^V$ 相乘，得到 Q，K，V 矩阵。矩阵X中的每一行，表示句子中的每一个词的词向量。Q，K，V 矩阵中的每一行表示 Query向量，Key向量，Value 向量，向量维度是$d_k$。</p>
+<h5 id="Self-Attention矩阵计算"><a href="#Self-Attention矩阵计算" class="headerlink" title="Self-Attention矩阵计算"></a>Self-Attention矩阵计算</h5><p>将self-attention计算6个步骤中的向量放一起，比如$X&#x3D;[x_1;x_2]$​，便可以进行矩阵计算啦。下面，依旧按步骤展示self-attention的矩阵计算方法。<br>$$<br>\begin{aligned}<br>&amp;X &#x3D; [X_1;X_2] \\<br>&amp;Q &#x3D; X W^Q, K &#x3D; X W^K, V&#x3D;X W^V \\<br>&amp;Z &#x3D; softmax(\frac{QK^T}{\sqrt{d_k}}) V<br>\end{aligned}<br>$$<br>第1步：计算 Query，Key，Value 的矩阵。首先，我们把所有词向量放到一个矩阵X中，然后分别和3个权重矩阵$W^Q, W^K W^V$ 相乘，得到 Q，K，V 矩阵。矩阵X中的每一行，表示句子中的每一个词的词向量。Q，K，V 矩阵中的每一行表示 Query向量，Key向量，Value 向量，向量维度是$d_k$。</p>
 <p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-qkv-multi.png?raw=true">图：QKV矩阵乘法</p>
 <p>第2步：由于我们使用了矩阵来计算，我们可以把上面的第 2 步到第 6 步压缩为一步，直接得到 Self Attention 的输出。</p>
 <p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-attention-output.webp?raw=true" alt="输出"><br>图：得到输出$Z$</p>
 <h5 id="多头注意力机制"><a href="#多头注意力机制" class="headerlink" title="多头注意力机制"></a>多头注意力机制</h5><p>Transformer 的论文通过增加多头注意力机制（一组注意力称为一个 attention head），进一步完善了Self-Attention。这种机制从如下两个方面增强了attention层的能力：</p>
 <ul>
-<li><strong>它扩展了模型关注不同位置的能力</strong>。在上面的例子中，第一个位置的输出$z_1$​包含了句子中其他每个位置的很小一部分信息，但$z_1$​仅仅是单个向量，所以可能仅由第1个位置的信息主导了。而当我们翻译句子：$The \space\space animal \space\space didn’t \space\space cross \space\space the \space\space street \space\space because \space\space it \space\space was \space\space too \space\space tired$时，我们不仅希望模型关注到”it”本身，还希望模型关注到”The”和“animal”，甚至关注到”tired”。这时，多头注意力机制会有帮助。</li>
+<li><strong>它扩展了模型关注不同位置的能力</strong>。在上面的例子中，第一个位置的输出$z_1$​包含了句子中其他每个位置的很小一部分信息，但$z_1$​仅仅是单个向量，所以可能仅由第1个位置的信息主导了。而当我们翻译句子：<code>The  animal  didn&#39;t  cross  the  street  because  it  was  too  tired</code>时，我们不仅希望模型关注到”it”本身，还希望模型关注到”The”和“animal”，甚至关注到”tired”。这时，多头注意力机制会有帮助。</li>
 <li><strong>多头注意力机制赋予attention层多个“子表示空间”</strong>。下面我们会看到，多头注意力机制会有多组$W^Q, W^K W^V$​ 的权重矩阵（在 Transformer 的论文中，使用了 8 组注意力),，因此可以将$X$​变换到更多种子空间进行表示。接下来我们也使用8组注意力头（attention heads））。每一组注意力的权重矩阵都是随机初始化的，但经过训练之后，每一组注意力的权重$W^Q, W^K W^V$​ 可以把输入的向量映射到一个对应的”子表示空间“。</li>
 </ul>
 <p><img src="https://github.com/datawhalechina/learn-nlp-with-transformers/blob/main/docs/%E7%AF%87%E7%AB%A02-Transformer%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/pictures/2-multi-head.png?raw=true" alt="多头注意力机制"><br>图：多头注意力机制</p>
@@ -567,7 +567,10 @@
     <a href="/2024/06/23/lab13/" rel="prev" title="机器翻译">
       <i class="fa fa-chevron-left"></i> 机器翻译
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2024/06/26/cv1/" rel="next" title="图像去噪">
+      图像去噪 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -642,14 +645,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
   </nav>
@@ -685,12 +688,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">90k</span>
+    <span title="站点总字数">100k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:22</span>
+    <span title="站点阅读时长">1:31</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>

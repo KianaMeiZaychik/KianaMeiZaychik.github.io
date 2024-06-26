@@ -162,6 +162,271 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/06/26/cv2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁 而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/06/26/cv2/" class="post-title-link" itemprop="url">边缘检测</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-06-26 15:00:00 / 修改时间：23:49:35" itemprop="dateCreated datePublished" datetime="2024-06-26T15:00:00+08:00">2024-06-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Computer-Vision/" itemprop="url" rel="index"><span itemprop="name">Computer Vision</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="canny边缘检测算子"><a href="#canny边缘检测算子" class="headerlink" title="canny边缘检测算子"></a><em>canny边缘检测算子</em></h1><h2 id="理论原理"><a href="#理论原理" class="headerlink" title="理论原理"></a><em>理论原理</em></h2><p>Canny 算子是常用的边缘检测算法，其执行步骤如下:</p>
+<ol>
+<li>应用高斯滤波器平滑图像以去除噪声</li>
+<li>计算图像的强度梯度</li>
+<li>应用非最大抑制（Non-maximum suppression）消除边缘检测的虚假响应</li>
+<li>应用双阈值确定潜在边缘</li>
+<li>通过滞后 (hysteresis ) 方法跟踪边缘：通过抑制所有其他弱边缘和未连接到强边缘的边缘，完成边缘检测</li>
+</ol>
+<h3 id="高斯滤波"><a href="#高斯滤波" class="headerlink" title="高斯滤波"></a><em>高斯滤波</em></h3><p>通过高斯滤波去除图像噪声的影响，常用 $5 \times 5$ 大小的高斯核，设置 $\sigma&#x3D;1.4$<br>$$<br>\mathbf{B}&#x3D;\frac{1}{159}\left[\begin{array}{ccccc}<br>2 &amp; 4 &amp; 5 &amp; 4 &amp; 2 \\<br>4 &amp; 9 &amp; 12 &amp; 9 &amp; 4 \\<br>5 &amp; 12 &amp; 15 &amp; 12 &amp; 5 \\<br>4 &amp; 9 &amp; 12 &amp; 9 &amp; 4 \\<br>2 &amp; 4 &amp; 5 &amp; 4 &amp; 2<br>\end{array}\right] * \mathbf{A}<br>$$</p>
+<p>高斯滤波核尺寸越大，越能够平滑噪声影响，但与此同时 Canny 算子的边缘检测的性能会降低</p>
+<h3 id="图像梯度计算"><a href="#图像梯度计算" class="headerlink" title="图像梯度计算"></a><em>图像梯度计算</em></h3><p>通过 Sobel 算子计算图像的水平和垂直反向导数，然后计算梯度大小和方向<br>$$<br>\begin{aligned}<br>&amp; G&#x3D;\sqrt{G_x^2+G_y^2} \<br>&amp; \theta&#x3D;\arctan \left(\frac{G_y}{G_x}\right)<br>\end{aligned}<br>$$</p>
+<p>将梯度方向通过四舍五入方法归入到水平&#x2F;垂直&#x2F;对角 $\left(0^{\circ}, 45^{\circ}, 90^{\circ}\right.$ 和 $\left.135^{\circ}\right)$ ，比如 $\left[0^{\circ}, 22.5^{\circ}\right]$ 和 $\left[157.5^{\circ}, 180^{\circ}\right]$ 映射为 $0^{\circ}$</p>
+<h3 id="非最大抑制"><a href="#非最大抑制" class="headerlink" title="非最大抑制"></a><em>非最大抑制</em></h3><p>非最大抑制是一种边缘细化技术。进行梯度计算后的图像边缘仍旧很模糊，边缘拥有多个候选位置，所以需要应用非最大抑制来寻找“最大”像素点，即具有最大强度值变化的位置，移除其他梯度值，保证边缘具有准确的响应。其原理如下</p>
+<ol>
+<li>将当前像素的边缘强度与像素在正梯度方向和负梯度方向上的边缘强度进行比较</li>
+<li>如果与相同方向的掩模中的其他像素相比，当前像素的边缘强度是最大的(例如，指向 $\mathrm{y}$ 轴方向的像素将与垂直轴上方和下方的像素相比较) ，则该值将被保留。否则，该值将被抑制(去除梯度值为 0 )</li>
+</ol>
+<p>具体实现时，将连续梯度方向分类为一组小的离散方向，然后在上一步的输出(即边缘强度和梯度方向 )上移动 $3 \times 3$ 滤波器。在每个像素处，如果中心像素的大小不大于渐变方向上两个相邻像素的大小，它将抑制中心像素的边缘强度(通过将其值设置为 0 )</p>
+<ul>
+<li>如果梯度角度为 $0^{\circ}$ （即边缘在南北方向），如果其梯度大小大于东西方向像素处的大小，则该点将被视为在边缘上</li>
+<li>如果梯度角度为 $45^{\circ}$ （即边缘位于西北-东南方向），如果其梯度大小大于东北和西南方向像素处的大小，则该点将被视为位于边缘上</li>
+<li>如果梯度角度为 $90^{\circ}$ （即边缘在东西方向），如果其梯度大小大于南北方向像素处的大小，则该点将被视为在边缘上</li>
+<li>如果梯度角度为 $135^{\circ}$ （即边缘位于东北-西南方向），如果其梯度大小大于西北和东南方向像素处的大小，则该点将被视为位于边缘上</li>
+</ul>
+<h3 id="双边阈值"><a href="#双边阈值" class="headerlink" title="双边阈值"></a><em>双边阈值</em></h3><p>通过非最大抑制，可以有效确定边缘的最大像素点，剩余的边缘像素提供了图像中真实边缘的更精确表示。但是，由于噪声和颜色变化，一些边缘像素仍然存在。为了去除这些虚假响应，必须滤除具有弱梯度值的边缘像素，并保留具有高梯度值的边缘像素。这是通过选择高阈值和低阈值来实现的。如果边缘像素的渐变值高于高阈值，则将其标记为强边缘像素。如果边缘像素的渐变值小于高阈值且大于低阈值，则将其标记为弱边缘像素。如果边缘像素的值小于低阈值，它将被抑制</p>
+<p>两个阈值是通过经验确定的，其定义将取决于给定输入图像的内容。通过其比率（ $upper: lower$ ）设置为 $2: 1$ 和 $3: 1$ 之间</p>
+<h3 id="通过滞后方法进行边缘追踪"><a href="#通过滞后方法进行边缘追踪" class="headerlink" title="通过滞后方法进行边缘追踪"></a><em>通过滞后方法进行边缘追踪</em></h3><p>经过上述步骤处理后，结果图像仅包含了强边缘像素和弱边缘像素。对于弱边缘像素而言，这些像素既可以从真实边缘提取，也可以从噪声&#x2F;颜色变化中提取</p>
+<p>通常，由真实边缘引起的弱边缘像素将连接到强边缘像素，而噪声响应则不连接。为了跟踪边缘连接，通过观察弱边缘像素及其 8 个邻域像素来进行blob分析。只要 blob 中包含一个强边缘像素，就可以将该弱边缘点识别为一个应该保留的点</p>
+<h2 id="具体内容"><a href="#具体内容" class="headerlink" title="具体内容"></a><em>具体内容</em></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">sys.setrecursionlimit(<span class="number">3000</span>)</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">trace</span>(<span class="params">M_supp,edge,i,j,LT</span>):</span><br><span class="line">    <span class="keyword">if</span> edge[i,j]==<span class="number">0</span>:</span><br><span class="line">        edge[i,j]=<span class="number">255</span></span><br><span class="line">        <span class="keyword">for</span> di,dj <span class="keyword">in</span>[(-<span class="number">1</span>,-<span class="number">1</span>),(-<span class="number">1</span>,<span class="number">0</span>),(-<span class="number">1</span>,<span class="number">1</span>),(<span class="number">0</span>,-<span class="number">1</span>),(<span class="number">0</span>,<span class="number">1</span>),(<span class="number">1</span>,-<span class="number">1</span>),(<span class="number">1</span>,<span class="number">0</span>),(<span class="number">1</span>,<span class="number">1</span>)]:</span><br><span class="line">            <span class="keyword">if</span> M_supp[i+di,j+dj]&gt;=LT:</span><br><span class="line">                trace(M_supp,edge,i+di,j+dj,LT)</span><br><span class="line">HT=<span class="number">200</span></span><br><span class="line">LT=<span class="number">50</span></span><br><span class="line">src=cv2.imread(<span class="string">&#x27;E:\shabi.jpg?raw=true&#x27;</span>)</span><br><span class="line">dst=cv2.cvtColor(src,cv2.COLOR_BGRA2GRAY)</span><br><span class="line">blur_dst=cv2.GaussianBlur(dst,(<span class="number">5</span>,<span class="number">5</span>),<span class="number">0.5</span>)</span><br><span class="line">dx=cv2.Sobel(blur_dst,cv2.CV_16S,<span class="number">1</span>,<span class="number">0</span>)</span><br><span class="line">dy=cv2.Sobel(blur_dst,cv2.CV_16S,<span class="number">0</span>,<span class="number">1</span>)</span><br><span class="line">M=<span class="built_in">abs</span>(dx)+<span class="built_in">abs</span>(dy)</span><br><span class="line">theta=np.arctan2(dx,dy)</span><br><span class="line">M_supp=np.zeros(M.shape)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>,M.shape[<span class="number">0</span>]-<span class="number">1</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>,M.shape[<span class="number">1</span>]-<span class="number">1</span>):</span><br><span class="line">        x=dx[i,j]</span><br><span class="line">        y=dy[i,j]</span><br><span class="line">        angle=theta[i,j]/np.pi</span><br><span class="line">        mag=M[i,j]</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">abs</span>(angle)&lt;=<span class="number">1</span>/<span class="number">8.</span> <span class="keyword">or</span> <span class="built_in">abs</span>(angle)&gt;=<span class="number">7</span>/<span class="number">8.</span>:</span><br><span class="line">            <span class="keyword">if</span> mag&gt;=M[i-<span class="number">1</span>,j] <span class="keyword">and</span> mag&gt;=M[i+<span class="number">1</span>,j]:</span><br><span class="line">                M_supp[i,j]=mag</span><br><span class="line">        <span class="keyword">elif</span> <span class="built_in">abs</span>(angle-<span class="number">1</span>/<span class="number">2.</span>)&lt;=<span class="number">1</span>/<span class="number">8.</span> <span class="keyword">or</span> <span class="built_in">abs</span>(angle+<span class="number">1</span>/<span class="number">2.</span>)&lt;=<span class="number">1</span>/<span class="number">8.</span>:</span><br><span class="line">            <span class="keyword">if</span> mag&gt;=M[i,j-<span class="number">1</span>] <span class="keyword">and</span> mag&gt;=M[i,j+<span class="number">1</span>]:</span><br><span class="line">                M_supp[i,j]=mag</span><br><span class="line">        <span class="keyword">elif</span> <span class="built_in">abs</span>(angle-<span class="number">3</span>/<span class="number">4.</span>)&lt;=<span class="number">1</span>/<span class="number">8.</span> <span class="keyword">or</span> <span class="built_in">abs</span>(angle+<span class="number">3</span>/<span class="number">4.</span>)&lt;=<span class="number">1</span>/<span class="number">8.</span>:</span><br><span class="line">            <span class="keyword">if</span> mag&gt;=M[i+<span class="number">1</span>,j-<span class="number">1</span>] <span class="keyword">and</span> mag&gt;=M[i-<span class="number">1</span>,j+<span class="number">1</span>]:</span><br><span class="line">                M_supp[i,j]=mag</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> mag&gt;=M[i+<span class="number">1</span>,j+<span class="number">1</span>] <span class="keyword">and</span> mag&gt;=M[i-<span class="number">1</span>,j-<span class="number">1</span>]:</span><br><span class="line">                M_supp[i,j]=mag</span><br><span class="line">M_supp=np.pad(M_supp,((<span class="number">1</span>,<span class="number">1</span>)),<span class="string">&#x27;constant&#x27;</span>)</span><br><span class="line">edge=np.zeros(M_supp.shape,dtype=np.uint8)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>,M_supp.shape[<span class="number">0</span>]-<span class="number">1</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>,M_supp.shape[<span class="number">1</span>]-<span class="number">1</span>):</span><br><span class="line">        <span class="keyword">if</span> M_supp[i,j]&gt;=HT:</span><br><span class="line">            trace(M_supp,edge,i,j,LT)</span><br><span class="line">edge=edge[<span class="number">1</span>:-<span class="number">1</span>,<span class="number">1</span>:-<span class="number">1</span>]</span><br><span class="line">cv2.imshow(<span class="string">&#x27;edge&#x27;</span>,edge)</span><br><span class="line">cv2.imwrite(<span class="string">&#x27;edge.jpg&#x27;</span>,edge)</span><br><span class="line">cv2.waitKey(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>原始图像<br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv1.jpg?raw=true"></p>
+<p>边缘检测<br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/edge.jpg?raw=true" alt="alt text"></p>
+<h1 id="基于阈值的二值化分割"><a href="#基于阈值的二值化分割" class="headerlink" title="基于阈值的二值化分割"></a><em>基于阈值的二值化分割</em></h1><h2 id="人工选取阈值"><a href="#人工选取阈值" class="headerlink" title="人工选取阈值"></a><em>人工选取阈值</em></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">human</span>(<span class="params">gray_img,threhold</span>):</span><br><span class="line">    dst=gray_img.copy()</span><br><span class="line">    dst[dst&lt;threhold]=<span class="number">0</span></span><br><span class="line">    dst[dst&gt;=threhold]=<span class="number">255</span></span><br><span class="line">    <span class="keyword">return</span> dst</span><br><span class="line">dst2=human(src,<span class="number">150</span>)</span><br></pre></td></tr></table></figure>
+<p>分割后图像<br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-7.png?raw=true"></p>
+<h2 id="迭代法"><a href="#迭代法" class="headerlink" title="迭代法"></a><em>迭代法</em></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">iteration</span>(<span class="params">gray_img</span>):</span><br><span class="line">    dst=gray_img.copy()</span><br><span class="line">    threhold=<span class="number">128</span></span><br><span class="line">    threhold1=<span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>):</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">abs</span>(threhold-threhold1)&lt;=<span class="number">1</span>):<span class="keyword">break</span></span><br><span class="line">        <span class="keyword">else</span>: threhold=threhold1</span><br><span class="line">        n0=dst[np.where(dst&lt;threhold)]</span><br><span class="line">        n1=dst[np.where(dst&gt;=threhold)]</span><br><span class="line">        miu0=n0.mean() <span class="keyword">if</span> <span class="built_in">len</span>(n0)&gt;<span class="number">0</span> <span class="keyword">else</span> <span class="number">0</span></span><br><span class="line">        miu1=n1.mean() <span class="keyword">if</span> <span class="built_in">len</span>(n1)&gt;<span class="number">0</span> <span class="keyword">else</span> <span class="number">0</span></span><br><span class="line">        threhold1=(miu0+miu1)/<span class="number">2</span></span><br><span class="line">    dst[dst&lt;threhold]=<span class="number">0</span></span><br><span class="line">    dst[dst&gt;=threhold]=<span class="number">255</span></span><br><span class="line">    <span class="keyword">return</span> dst</span><br></pre></td></tr></table></figure>
+<p>分割结果<br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-8.png?raw=true" alt="alt text"></p>
+<h2 id="OSTU算法"><a href="#OSTU算法" class="headerlink" title="OSTU算法"></a><em>OSTU算法</em></h2><h3 id="理论原理-1"><a href="#理论原理-1" class="headerlink" title="理论原理"></a><em>理论原理</em></h3><p>大津算法（OTSU算法）是一种常用的图像二值化方法，用于将灰度图像转化为二值图像。该算法由日本学者大津展之于1979年提出，因此得名。</p>
+<p>大津算法的核心思想是通过寻找一个阈值，将图像的像素分为两个类别：前景和背景。具体步骤如下：</p>
+<ol>
+<li>统计图像的灰度直方图，得到每个灰度级的像素数目。</li>
+<li>遍历所有可能的阈值（0到255），计算根据该阈值将图像分为前景和背景的类内方差。</li>
+<li>根据类内方差的最小值确定最佳阈值。<br>在大津算法中，类内方差是衡量前景和背景之间差异的度量。通过选择使类内方差最小的阈值，可以实现最佳的图像分割效果。</li>
+</ol>
+<p>大津算法的优点是简单易懂，计算效率高。它适用于灰度图像的二值化处理，特别是对于具有双峰直方图的图像效果更好。然而，该算法对于具有非双峰直方图的图像可能产生较差的分割结果。因此，在应用大津算法之前，需要对图像的直方图进行分析，确保适用性。</p>
+<p>大津算法在图像处理中被广泛应用，例如在文档图像处理、目标检测、图像分割等领域。</p>
+<p>下面推导类间方差函数：<br>设阈值为灰度 $\mathrm{k}(k \in[0, L-1], L&#x3D;256)$ 。这个阈值把图像像素分割成两类，C1类像素小于等于 $\mathrm{k} ， \mathrm{C} 2$ 类像素大于 $\mathrm{k}$ 。设这两类像素各自的均值为 $m_1, m_2$ ，图像全局均值为 $m_G$ 。同时像素被分为 $\mathrm{C} 1$ 和 $\mathrm{C} 2$ 类的概率分别为 $p_1, p_2$ 。则有:<br>$$<br>\begin{gathered}<br>p_1 m_1+p_2 m_2&#x3D;m_G \\<br>p_1+p_2&#x3D;1<br>\end{gathered}<br>$$</p>
+<p>根据方差的概念，类间方差表达式为:<br>$$<br>\sigma^2&#x3D;p_1\left(m_1-m_G\right)^2+p_2\left(m_2-m_G\right)^2<br>$$</p>
+<p>展开:<br>$$<br>\sigma^2&#x3D;p_1 m_1^2+p_1 m_G^2-2 p_1 m_1 m_G+p_2 m_2^2+p_2 m_G^2-2 p_2 m_2 m_G<br>$$</p>
+<p>合并2，5及3，6项可得:<br>$$<br>\sigma^2&#x3D;p_1 m_1^2+p_2 m_2^2+m_G^2-2 m_G^2&#x3D;p_1 m_1^2+p_2 m_2^2-m_G^2<br>$$</p>
+<p>我们再把 $m_G&#x3D;p_1 m_1+p_2 m_2$带回得<br>$$<br>\sigma^2&#x3D;\left(p_1-p_1^2\right) m_1^2+\left(p_2-p_2^2\right) m_2^2-2 p_1 p_2 m_1 m_2<br>$$</p>
+<p>再注意到 $p_1+p_2&#x3D;1$ ，所以 $p_1-p_1^2&#x3D;p_1\left(1-p_1\right)&#x3D;p_1 p_2 ， p_2-p_2^2&#x3D;p_2\left(1-p_2\right)&#x3D;p_1 p_2$ ，从而得到:<br>$$<br>\sigma^2&#x3D;p_1 p_2\left(m_1-m_2\right)^2<br>$$</p>
+<p>对于给定的阈值 $k$ ，我们可以统计出灰度级的分布列:</p>
+<table>
+<thead>
+<tr>
+<th align="left">灰度值</th>
+<th align="left">0</th>
+<th align="left">1</th>
+<th align="left">$\ldots$</th>
+<th align="left">255</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">$p_i$</td>
+<td align="left">$p_0$</td>
+<td align="left">$p_1$</td>
+<td align="left">$\ldots$</td>
+<td align="left">$p_{255}$</td>
+</tr>
+</tbody></table>
+<p>显然根据分布列性质有 $\sum_{i&#x3D;0}^{L-1} p_i&#x3D;1$ (请注意这里的 $p_1, p_2$ 是分布列中的，不是上面的定义)那么有:<br>$$<br>p_1&#x3D;\sum_{i&#x3D;0}^{k-1} p_i, p_2&#x3D;\sum_{i&#x3D;k}^{L-1} p_i, m_1&#x3D;\sum_{i&#x3D;0}^{k-1} i p_i, m_2&#x3D;\sum_{i&#x3D;k}^{L-1} i p_i<br>$$</p>
+<p>将 $\mathrm{k}$ 从 $[0, L-1]$ 遍历，找出使得 $\sigma^2$ 最大的 $\mathrm{k}$ 值，这个 $\mathrm{k}$ 值就是阈值。<br>对于分割，这个分割就是二值化</p>
+<h3 id="具体内容-1"><a href="#具体内容-1" class="headerlink" title="具体内容"></a><em>具体内容</em></h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">ostu</span>(<span class="params">gray_img</span>):</span><br><span class="line">    dst=gray_img.copy()</span><br><span class="line">    h=dst.shape[<span class="number">0</span>]</span><br><span class="line">    w=dst.shape[<span class="number">1</span>]</span><br><span class="line">    threhold_t=<span class="number">0</span></span><br><span class="line">    max_g=<span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">255</span>):</span><br><span class="line">        n0=dst[np.where(dst&lt;t)]</span><br><span class="line">        n1=dst[np.where(dst&gt;=t)]</span><br><span class="line">        w0=<span class="built_in">len</span>(n0)/(h*w)</span><br><span class="line">        w1=<span class="built_in">len</span>(n1)/(h*w)</span><br><span class="line">        u0=np.mean(n0) <span class="keyword">if</span> <span class="built_in">len</span>(n0)&gt;<span class="number">0</span> <span class="keyword">else</span> <span class="number">0.</span></span><br><span class="line">        u1=np.mean(n1) <span class="keyword">if</span> <span class="built_in">len</span>(n1)&gt;<span class="number">0</span> <span class="keyword">else</span> <span class="number">0.</span></span><br><span class="line">        g=w0*w1*(u0-u1)**<span class="number">2</span></span><br><span class="line">        <span class="keyword">if</span> g&gt;max_g:</span><br><span class="line">            max_g=g</span><br><span class="line">            threhold_t=t</span><br><span class="line">    dst[dst&lt;threhold_t]=<span class="number">0</span></span><br><span class="line">    dst[dst&gt;=threhold_t]=<span class="number">255</span></span><br><span class="line">    <span class="keyword">return</span> dst</span><br></pre></td></tr></table></figure>
+<p>分割图像<br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-9.png?raw=true" alt="alt text"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/06/26/cv1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁 而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/06/26/cv1/" class="post-title-link" itemprop="url">图像去噪</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-06-26 14:00:00 / 修改时间：23:48:57" itemprop="dateCreated datePublished" datetime="2024-06-26T14:00:00+08:00">2024-06-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Computer-Vision/" itemprop="url" rel="index"><span itemprop="name">Computer Vision</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>为了操作方便，我们将原始输入的彩色图片转为黑白</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">rgb2gray</span>(<span class="params">adr</span>):</span><br><span class="line">    img=cv2.imread(adr)</span><br><span class="line">    width = img.shape[<span class="number">0</span>]</span><br><span class="line">    height = img.shape[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">    grayimg = np.zeros([width,height],np.uint8) </span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(width):</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(height):</span><br><span class="line">            grayimg[i,j] = <span class="number">0.299</span> * img[i,j][<span class="number">0</span>] + <span class="number">0.587</span> * img[i,j][<span class="number">1</span>] </span><br><span class="line">            +  <span class="number">0.114</span> * img[i,j][<span class="number">2</span>]        </span><br><span class="line">    cv2.imshow(<span class="string">&#x27;grayimage&#x27;</span>, grayimg)</span><br><span class="line">    <span class="keyword">return</span> grayimg</span><br></pre></td></tr></table></figure>
+
+<p>原始图像</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/maid.jpg?raw=true" alt="alt text"></p>
+<p>灰度图像</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv.png?raw=true" alt="alt text"></p>
+<h1 id="添加椒盐噪声"><a href="#添加椒盐噪声" class="headerlink" title="添加椒盐噪声"></a><em>添加椒盐噪声</em></h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">pepper_and_salt</span>(<span class="params">img,percentage</span>):</span><br><span class="line">    num=<span class="built_in">int</span>(percentage*img.shape[<span class="number">0</span>]*img.shape[<span class="number">1</span>])<span class="comment">#  椒盐噪声点数量</span></span><br><span class="line">    random.randint(<span class="number">0</span>, img.shape[<span class="number">0</span>])</span><br><span class="line">    img2=img.copy()</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num):</span><br><span class="line">        X=random.randint(<span class="number">0</span>,img2.shape[<span class="number">0</span>]-<span class="number">1</span>)<span class="comment">#从0到图像长度之间的一个随机整数</span></span><br><span class="line">        Y=random.randint(<span class="number">0</span>,img2.shape[<span class="number">1</span>]-<span class="number">1</span>)<span class="comment">#因为是闭区间所以-1</span></span><br><span class="line">        <span class="keyword">if</span> random.randint(<span class="number">0</span>,<span class="number">1</span>) ==<span class="number">0</span>: <span class="comment">#黑白色概率55开</span></span><br><span class="line">            img2[X,Y] = (<span class="number">255</span>)<span class="comment">#白色</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            img2[X,Y] =(<span class="number">0</span>)<span class="comment">#黑色</span></span><br><span class="line">    <span class="comment">#cv2.imshow(&quot;shabi_pepper_and_salt&quot;,img2)</span></span><br><span class="line">    <span class="keyword">return</span> img2</span><br></pre></td></tr></table></figure>
+
+
+<p>加噪后图像</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-1.png?raw=true" alt="alt text"></p>
+<h1 id="基于像素的均值、中值滤波的去噪"><a href="#基于像素的均值、中值滤波的去噪" class="headerlink" title="基于像素的均值、中值滤波的去噪"></a><em>基于像素的均值、中值滤波的去噪</em></h1><h2 id="均值滤波"><a href="#均值滤波" class="headerlink" title="均值滤波"></a><em>均值滤波</em></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">mean_fliter</span>(<span class="params">img,size</span>):</span><br><span class="line">        edge=<span class="built_in">int</span>((size-<span class="number">1</span>)/<span class="number">2</span>)</span><br><span class="line">        width = img.shape[<span class="number">0</span>]</span><br><span class="line">        height = img.shape[<span class="number">1</span>]</span><br><span class="line">        img_fliter = np.zeros([width,height,<span class="number">1</span>],np.uint8) </span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(width-size):</span><br><span class="line">            <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(height-size):</span><br><span class="line">                    <span class="keyword">if</span> i &lt;= edge - <span class="number">1</span> <span class="keyword">or</span> i &gt;= height - <span class="number">1</span> - edge <span class="keyword">or</span> </span><br><span class="line">                    j &lt;= edge - <span class="number">1</span> <span class="keyword">or</span> j &gt;= height - edge - <span class="number">1</span>:</span><br><span class="line">                        img_fliter[i, j] = img[i, j]</span><br><span class="line">                    <span class="keyword">else</span>:</span><br><span class="line">                        img_fliter[i, j] = np.mean(img[i - edge:i + edge + <span class="number">1</span>,</span><br><span class="line">                         j - edge:j + edge + <span class="number">1</span>])</span><br><span class="line">        cv2.imshow(<span class="string">&quot;mean fliter&quot;</span>,img_fliter)</span><br></pre></td></tr></table></figure>
+<p>均值滤波图像</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-2.png?raw=true" alt="alt text"></p>
+<h2 id="中值滤波"><a href="#中值滤波" class="headerlink" title="中值滤波"></a><em>中值滤波</em></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">median_fliter</span>(<span class="params">img,size</span>):</span><br><span class="line">        edge=<span class="built_in">int</span>((size-<span class="number">1</span>)/<span class="number">2</span>)</span><br><span class="line">        width = img.shape[<span class="number">0</span>]</span><br><span class="line">        height = img.shape[<span class="number">1</span>]</span><br><span class="line">        img_fliter = np.zeros([width,height,<span class="number">1</span>],np.uint8) </span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(width-size):</span><br><span class="line">            <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(height-size):</span><br><span class="line">                    <span class="keyword">if</span> i &lt;= edge - <span class="number">1</span> <span class="keyword">or</span> i &gt;= height - <span class="number">1</span> </span><br><span class="line">                    - edge <span class="keyword">or</span> j &lt;= edge - <span class="number">1</span> <span class="keyword">or</span> j &gt;= height - edge - <span class="number">1</span>:</span><br><span class="line">                        img_fliter[i, j] = img[i, j]</span><br><span class="line">                    <span class="keyword">else</span>:</span><br><span class="line">                        img_fliter[i, j] = np.median(img[i - edge:i + edge + <span class="number">1</span>, </span><br><span class="line">                        j - edge:j + edge + <span class="number">1</span>])</span><br><span class="line">        cv2.imshow(<span class="string">&quot;meadian fliter&quot;</span>,img_fliter)</span><br></pre></td></tr></table></figure>
+<p>中值滤波图像</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-3.png?raw=true" alt="alt text"></p>
+<h1 id="基于卷积的均值滤波"><a href="#基于卷积的均值滤波" class="headerlink" title="基于卷积的均值滤波"></a><em>基于卷积的均值滤波</em></h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">kernel = np.array([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>],</span><br><span class="line">                   [<span class="number">2</span>, <span class="number">4</span>, <span class="number">2</span>],</span><br><span class="line">                   [<span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>]])/<span class="number">16</span> <span class="comment"># 定义卷积核</span></span><br><span class="line">output = cv2.filter2D(img2,-<span class="number">1</span>,kernel)<span class="comment"># 进行卷积操作</span></span><br></pre></td></tr></table></figure>
+<p>卷积图像<br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-5.png?raw=true" alt="alt text"></p>
+<h1 id="非局部均值去噪"><a href="#非局部均值去噪" class="headerlink" title="非局部均值去噪"></a><em>非局部均值去噪</em></h1><h2 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a><em>算法原理</em></h2><p>非局部均值去噪 (NL-means)<br>非局部均值 (NL-means) 是近年来提出的一项新型的去噪技术。该方法充分利用了图像中的几余信息，在去噪的同时能最大程度地保持图像的细节特征。基本思想是：当前像素的估计值由图像中与它具有相似令域结构的像素加权平均得到。</p>
+<p>理论上，该算法需要在整个图像范围内判断像素间的相似度，也就是说，每处理一个像素点时，都要计算它与图像中所有像素点间的相似度。但是考虑到效率问题，实现的时候，会设定两个固定大小的窗口: 搜索窗口 $(D \times D, D&#x3D;2 * D s+1)$ 和邻域窗口 $(d \times d, d&#x3D;2 * d s+1)$ 。邻域窗口在搜索窗口中滑动，根据邻域间的相似性确定像素的权值。</p>
+<p>下图是NL-means算法执行过程，大窗口是以目标像素 $x$ 为中心的搜索窗口，两个灰色小窗口分别是以 $x 、 y$ 为中心的邻域窗口。其中以 $y$ 为中心的邻域窗口在搜索窗口中滑动，通过计算两个邻域窗口间的相似程度为 $y$赋以权值$w(x, y)$ 。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-6.png?raw=true" alt="alt text"></p>
+<p>设含噪声图像为 $v$ ，去噪后的图像为 $\tilde{u}$ 。 $\tilde{u}$ 中像素点 $x$ 处的灰度值通过如下方式得到:<br>$$<br>\tilde{u}(x)&#x3D;\sum_{y \in I} w(x, y) * v(y)<br>$$</p>
+<p>其中权值 $w(x, y)$ 表示像素点 $x$ 和 $Y$ 间的相似度，它的值由以 $x, y$ 为中心的矩形邻域 $V(x) 、 V(y)$ 间的距离 $|V(x)-V(y)|^2$ 决定:<br>$$<br>w(x, y)&#x3D;\frac{1}{Z(x)} \exp \left(-\frac{|V(x)-V(y)|^2}{h^2}\right)<br>$$</p>
+<p>具中<br>$$<br>\begin{aligned}<br>&amp; |V(x)-V(y)|^2&#x3D;\frac{1}{d^2} \sum_{|z|_{\infty} \leq d s}|v(x+z)-v(y+z)|^2 \\<br>&amp; Z(x)&#x3D;\sum_y \exp \left(-\frac{|V(x)-V(y)|^2}{h^2}\right)<br>\end{aligned}<br>$$<br>$Z(x)$ 为归一化系数， $h$ 为平滑参数，控制高斯函数的衰减程度。 $h$ 越大高斯函数变化越平缓，去噪水平越高，但同时也会导致图像越模糊。 $h$ 越小，边缘细节成分保持得越多，但会残留过多的噪声点。 $h$ 的具体取值应当以图像中的噪声水平为依据。</p>
+<h2 id="具体内容"><a href="#具体内容" class="headerlink" title="具体内容"></a><em>具体内容</em></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">NLM_fliter</span>(<span class="params">img</span>):</span><br><span class="line">    img2 = np.zeros([img.shape[<span class="number">0</span>],img.shape[<span class="number">1</span>]],np.uint8) </span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>,img.shape[<span class="number">0</span>]-<span class="number">10</span>):</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>,img.shape[<span class="number">1</span>]-<span class="number">10</span>):</span><br><span class="line">            search_window=img[i-<span class="number">10</span>:i+<span class="number">11</span>,j-<span class="number">10</span>:j+<span class="number">11</span>]</span><br><span class="line">            patch=img[i-<span class="number">3</span>:i+<span class="number">4</span>,j-<span class="number">3</span>:j+<span class="number">4</span>]</span><br><span class="line">            img2[i,j]=pixel_estimation(search_window,patch,<span class="number">100</span>/<span class="number">256</span>)</span><br><span class="line">    <span class="keyword">return</span> img2</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pixel_estimation</span>(<span class="params">search_window,patch,h</span>):</span><br><span class="line">    window_height=search_window.shape[<span class="number">0</span>]</span><br><span class="line">    window_width=search_window.shape[<span class="number">1</span>]</span><br><span class="line">    patch_height=patch.shape[<span class="number">0</span>]</span><br><span class="line">    patch_width=patch.shape[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">    similarity=np.zeros((window_height-patch_height//<span class="number">2</span>*<span class="number">2</span>,</span><br><span class="line">    window_width-patch_width//<span class="number">2</span>*<span class="number">2</span>))</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(patch_height//<span class="number">2</span>,window_height-patch_height//<span class="number">2</span>):</span><br><span class="line">         <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(patch_width//<span class="number">2</span>,window_width-patch_width//<span class="number">2</span>):</span><br><span class="line">              temp=search_window[i-patch_height//<span class="number">2</span>:i+patch_height//<span class="number">2</span>+<span class="number">1</span>,</span><br><span class="line">              j-patch_width//<span class="number">2</span>:j+patch_width//<span class="number">2</span>+<span class="number">1</span>]</span><br><span class="line">              similarity[i-patch_height//<span class="number">2</span>,j-patch_width//<span class="number">2</span>]=weight_eucledian_distance(patch,temp,h)</span><br><span class="line">    Z=np.<span class="built_in">sum</span>(similarity)</span><br><span class="line">    weights=np.zeros(search_window.shape)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(patch_height//<span class="number">2</span>,window_height-patch_height//<span class="number">2</span>):</span><br><span class="line">         <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(patch_width//<span class="number">2</span>,window_width-patch_width//<span class="number">2</span>):</span><br><span class="line">              weights[i,j]=<span class="number">1</span>/Z*similarity[i-patch_height//<span class="number">2</span>,j-patch_width//<span class="number">2</span>]</span><br><span class="line">    NLM_estimation=np.<span class="built_in">sum</span>(weights*search_window)</span><br><span class="line">    <span class="keyword">return</span> NLM_estimation.astype(np.uint8)</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">weight_eucledian_distance</span>(<span class="params">patch1,patch2,h</span>):</span><br><span class="line">     <span class="keyword">return</span> np.exp(-(patch1-patch2)**<span class="number">2</span>/(h*h))</span><br></pre></td></tr></table></figure>
+
+<p>NLM图像<br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/cv-4.png?raw=true" alt="alt text"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2024/06/24/lab14/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -187,7 +452,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-06-24 23:00:00 / 修改时间：17:35:36" itemprop="dateCreated datePublished" datetime="2024-06-24T23:00:00+08:00">2024-06-24</time>
+              <time title="创建时间：2024-06-24 23:00:00 / 修改时间：17:48:06" itemprop="dateCreated datePublished" datetime="2024-06-24T23:00:00+08:00">2024-06-24</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -970,14 +1235,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
   </nav>
@@ -1013,12 +1278,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">90k</span>
+    <span title="站点总字数">100k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:22</span>
+    <span title="站点阅读时长">1:31</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>

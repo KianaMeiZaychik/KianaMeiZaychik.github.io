@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="主要目标基于改进的U-Net算法实现农业遥感图像语义分割训练 实验过程基本原理图像分割是将图片根据内容分割成不同的块，它需要对每个像素点进行分类，物体的轮廓是精准勾勒的，而不是像检测那样给出边界框。按照分割目的来进行划分，图像分割可以分为以下三种： 普通分割：不关注物体是什么，只是划定不同物体之间的界限，将分属不同物体的像素区域划分开来，比如将前景和背景分开。 语义分割：在普通分割的基础上，分类出">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于改进UNet算法的农业图像分割">
+<meta property="og:url" content="http://example.com/2024/05/23/mllab5/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="主要目标基于改进的U-Net算法实现农业遥感图像语义分割训练 实验过程基本原理图像分割是将图片根据内容分割成不同的块，它需要对每个像素点进行分类，物体的轮廓是精准勾勒的，而不是像检测那样给出边界框。按照分割目的来进行划分，图像分割可以分为以下三种： 普通分割：不关注物体是什么，只是划定不同物体之间的界限，将分属不同物体的像素区域划分开来，比如将前景和背景分开。 语义分割：在普通分割的基础上，分类出">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-1.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-2.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-3.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-4.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-5.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-6.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-7.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-8.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-9.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-10.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-11.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-12.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-14.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-15.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-16.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-17.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-18.png?raw=true">
+<meta property="article:published_time" content="2024-05-23T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-06T08:37:18.031Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2024/05/23/mllab5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>基于改进UNet算法的农业图像分割 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/05/23/mllab5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁，而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于改进UNet算法的农业图像分割
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-05-23 14:00:00" itemprop="dateCreated datePublished" datetime="2024-05-23T14:00:00+08:00">2024-05-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-07-06 16:37:18" itemprop="dateModified" datetime="2024-07-06T16:37:18+08:00">2024-07-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>16k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>15 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="主要目标"><a href="#主要目标" class="headerlink" title="主要目标"></a>主要目标</h1><p>基于改进的U-Net算法实现农业遥感图像语义分割训练</p>
+<h1 id="实验过程"><a href="#实验过程" class="headerlink" title="实验过程"></a>实验过程</h1><h2 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h2><p>图像分割是将图片根据内容分割成不同的块，它需要对每个像素点进行分类，物体的轮廓是精准勾勒的，而不是像检测那样给出边界框。按照分割目的来进行划分，图像分割可以分为以下三种：</p>
+<p>普通分割：不关注物体是什么，只是划定不同物体之间的界限，将分属不同物体的像素区域划分开来，比如将前景和背景分开。</p>
+<p>语义分割：在普通分割的基础上，分类出每一块区域的标签，识别出该区域的物体。</p>
+<span id="more"></span>
+<p>实例分割：在语义分割的基础上，将每个物体都分别开来，同类的物体也有不同的编号，比如识别场景中的不同的人。</p>
+<p>本实验目标：我们本次实验要做的就是对农业大数据图像进行语义分割，将不同区域的农作物进行分类。无论是哪种图像分割，整体流程都是差不多的，下面介绍一下图像分割的基本流程和训练过程。</p>
+<h3 id="图像分割的基本流程"><a href="#图像分割的基本流程" class="headerlink" title="图像分割的基本流程"></a>图像分割的基本流程</h3><h4 id="下采样与上采样"><a href="#下采样与上采样" class="headerlink" title="下采样与上采样"></a>下采样与上采样</h4><p>Convolution（卷积）：通过卷积层提取图像的多层次特征。<br>Deconvolution（反卷积）或Resize（重采样）：通过反卷积或重采样恢复图像的空间分辨率。</p>
+<h4 id="多尺度特征融合"><a href="#多尺度特征融合" class="headerlink" title="多尺度特征融合"></a>多尺度特征融合</h4><p>特征逐点相加：不同层的特征图逐点相加，融合多层特征。<br>特征channel维度拼接：不同层的特征图在channel维度拼接，保留多层特征信息。</p>
+<h4 id="获得像素级别的segmentation-map"><a href="#获得像素级别的segmentation-map" class="headerlink" title="获得像素级别的segmentation map"></a>获得像素级别的segmentation map</h4><p>对每一个像素点进行类别判断，生成每个像素点的分类标签。</p>
+<h3 id="训练过程"><a href="#训练过程" class="headerlink" title="训练过程"></a>训练过程</h3><p>输入：image + label（输入图像和标签）</p>
+<p>前向计算：out &#x3D; model(image)（通过模型进行前向计算，输出预测结果）</p>
+<p>计算损失：loss &#x3D; loss_func(out, label)（通过损失函数计算预测结果与标签之间的差异）</p>
+<p>反向传播：loss.backward()（计算梯度，进行反向传播）</p>
+<p>更新权重：optimizer.minimize(loss)（使用优化器更新模型权重）</p>
+<h3 id="导入组件包"><a href="#导入组件包" class="headerlink" title="导入组件包"></a>导入组件包</h3><p>在实现基于改进的U-Net算法进行农业遥感图像语义分割的过程中，需要导入一系列用于数据处理、可视化和模型训练的工具包。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">&quot;Agg&quot;</span>)</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np  </span><br><span class="line"><span class="keyword">from</span> keras.models <span class="keyword">import</span> Sequential  </span><br><span class="line"><span class="keyword">from</span> keras.layers <span class="keyword">import</span> *  </span><br><span class="line"><span class="keyword">from</span> keras.utils.np_utils <span class="keyword">import</span> to_categorical  </span><br><span class="line"><span class="keyword">from</span> keras.preprocessing.image <span class="keyword">import</span> img_to_array  </span><br><span class="line"><span class="keyword">from</span> keras.callbacks <span class="keyword">import</span> ModelCheckpoint  </span><br><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> LabelEncoder  </span><br><span class="line"><span class="keyword">from</span> keras.models <span class="keyword">import</span> Model</span><br><span class="line"><span class="keyword">from</span> keras.models <span class="keyword">import</span> load_model</span><br><span class="line"><span class="keyword">from</span> keras.layers.merge <span class="keyword">import</span> concatenate</span><br><span class="line"><span class="keyword">from</span> PIL <span class="keyword">import</span> Image  </span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt  </span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tqdm  </span><br><span class="line">os.environ[<span class="string">&quot;CUDA_VISIBLE_DEVICES&quot;</span>] = <span class="string">&quot;4&quot;</span></span><br><span class="line">%matplotlib inline</span><br></pre></td></tr></table></figure>
+<h2 id="准备数据"><a href="#准备数据" class="headerlink" title="准备数据"></a>准备数据</h2><h3 id="大尺度农作物卫星遥感数据"><a href="#大尺度农作物卫星遥感数据" class="headerlink" title="大尺度农作物卫星遥感数据"></a>大尺度农作物卫星遥感数据</h3><p>数据来源于无人机遥感影像。无人机遥感测量技术作为空间信息技术的重要组成部分，既能作为星载遥感影像的重要补充，又能有效替代人工实地调查。凭借着降低地面人工调查强度和调查成本、快速获取实时高分辨数据的优势，它成为农业统计调查工作中的一大创新点，同时也是精准农业的重要方向之一。</p>
+<h3 id="数据来源地址"><a href="#数据来源地址" class="headerlink" title="数据来源地址"></a>数据来源地址</h3><p><a target="_blank" rel="noopener" href="https://tianchi.aliyun.com/competition/entrance/231717/">天池大赛 - 农作物遥感影像数据集</a></p>
+<h3 id="数据可视化"><a href="#数据可视化" class="headerlink" title="数据可视化"></a>数据可视化</h3><p>标注作物类型图片是一张unint8单通道图像。每个像素点值表示原始图片中对应位置所属类别，其中“烤烟”像素值 1，“玉米”像素值 2，“薏仁米”像素值 3，“人造建筑”像素值 4，其余所有位置视为“其他”像素值 0。</p>
+<p>随机选择训练集中的18张图像，并且利用matplotlib库对其进行可视化，展示数据集的基本情况。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">directory = <span class="string">&quot;/root/data/Lab4/Lab4-data/UNetP_data/train_data&quot;</span></span><br><span class="line">images = random.choices(os.listdir(directory), k=<span class="number">18</span>)</span><br><span class="line"></span><br><span class="line">fig = plt.figure(figsize=(<span class="number">20</span>, <span class="number">10</span>))</span><br><span class="line">columns = <span class="number">6</span></span><br><span class="line">rows = <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> x, i <span class="keyword">in</span> <span class="built_in">enumerate</span>(images):</span><br><span class="line">    path = os.path.join(directory, i)</span><br><span class="line">    img = plt.imread(path)</span><br><span class="line">    fig.add_subplot(rows, columns, x + <span class="number">1</span>)</span><br><span class="line">    plt.imshow(img)</span><br><span class="line"></span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml.png?raw=true" alt="alt text"></p>
+<h3 id="设置数据和标签"><a href="#设置数据和标签" class="headerlink" title="设置数据和标签"></a>设置数据和标签</h3><p>这里采用labelEncoder方法进行标签的处理，标准化标签，将标签值统一转换成range范围内。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">width = <span class="number">512</span>  </span><br><span class="line">height = <span class="number">512</span>  </span><br><span class="line">classes = [<span class="number">0.</span> ,  <span class="number">1.</span>,  <span class="number">2.</span>,   <span class="number">3.</span>  , <span class="number">4.</span>]  </span><br><span class="line">labelencoder = LabelEncoder()  </span><br><span class="line">labelencoder.fit(classes) </span><br></pre></td></tr></table></figure>
+<h3 id="图片加载函数"><a href="#图片加载函数" class="headerlink" title="图片加载函数"></a>图片加载函数</h3><p>对指定路径的图片进行加载，如果是灰度图，直接读取，如果是RGB图像，则对图像进行归一化。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_img</span>(<span class="params">path, grayscale=<span class="literal">False</span></span>):</span><br><span class="line">    <span class="keyword">if</span> grayscale:</span><br><span class="line">        img = cv2.imread(path,cv2.IMREAD_GRAYSCALE)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        img = cv2.imread(path)</span><br><span class="line">        img = np.array(img,dtype=<span class="string">&quot;float&quot;</span>) / <span class="number">255.0</span></span><br></pre></td></tr></table></figure>
+<h3 id="定义训练参数和数据"><a href="#定义训练参数和数据" class="headerlink" title="定义训练参数和数据"></a>定义训练参数和数据</h3><p>设置随机数种子</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">seed = <span class="number">7</span>  </span><br><span class="line">np.random.seed(seed)  </span><br></pre></td></tr></table></figure>
+<p>设置验证集获取规则，将训练集的1&#x2F;4用作验证集。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_train_val</span>(<span class="params">val_rate=<span class="number">0.25</span></span>):</span><br><span class="line">    train_url = []</span><br><span class="line">    train_set = []</span><br><span class="line">    val_set = []</span><br><span class="line">    <span class="keyword">for</span> pic <span class="keyword">in</span> os.listdir(<span class="string">&#x27;/root/data/Lab4/Lab4-data/UNetP_data/train_data/&#x27;</span>):</span><br><span class="line">        train_url.append(pic)</span><br><span class="line">    random.shuffle(train_url)</span><br><span class="line">    total_num = <span class="built_in">len</span>(train_url)</span><br><span class="line">    val_num = <span class="built_in">int</span>(val_rate * total_num)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(train_url)):</span><br><span class="line">        <span class="keyword">if</span> i &lt; val_num:</span><br><span class="line">            val_set.append(train_url[i])</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            train_set.append(train_url[i])</span><br><span class="line">    <span class="keyword">return</span> train_set, val_set</span><br></pre></td></tr></table></figure>
+<p>设置训练集生成函数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">generateData</span>(<span class="params">batch_size, data=[]</span>):</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        train_data = []</span><br><span class="line">        train_label = []</span><br><span class="line">        batch = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> (<span class="built_in">range</span>(<span class="built_in">len</span>(data))):</span><br><span class="line">            url = data[i]</span><br><span class="line">            batch += <span class="number">1</span></span><br><span class="line">            img = load_img(<span class="string">&#x27;/root/data/Lab4/Lab4-data/UNetP_data/train_data/&#x27;</span> + url)</span><br><span class="line">            img = img_to_array(img)</span><br><span class="line">            train_data.append(img)</span><br><span class="line">            label = load_img(<span class="string">&#x27;/root/data/Lab4/Lab4-data/UNetP_data/train_label/&#x27;</span> + url, grayscale=<span class="literal">True</span>)</span><br><span class="line">            label = img_to_array(label)</span><br><span class="line">            train_label.append(label)</span><br><span class="line">            <span class="keyword">if</span> batch % batch_size == <span class="number">0</span>:</span><br><span class="line">                train_data = np.array(train_data)</span><br><span class="line">                train_label = np.array(train_label)</span><br><span class="line">                <span class="keyword">yield</span> (train_data, train_label)</span><br><span class="line">                train_data = []</span><br><span class="line">                train_label = []</span><br><span class="line">                batch = <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>设置验证集生成函数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">generateValidData</span>(<span class="params">batch_size, data=[]</span>):</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        valid_data = []</span><br><span class="line">        valid_label = []</span><br><span class="line">        batch = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> (<span class="built_in">range</span>(<span class="built_in">len</span>(data))):</span><br><span class="line">            url = data[i]</span><br><span class="line">            batch += <span class="number">1</span></span><br><span class="line">            img = load_img(<span class="string">&#x27;/root/data/Lab4/Lab4-data/UNetP_data/train_data/&#x27;</span> + url)</span><br><span class="line">            img = img_to_array(img)</span><br><span class="line">            valid_data.append(img)</span><br><span class="line">            label = load_img(<span class="string">&#x27;/root/data/Lab4/Lab4-data/UNetP_data/train_label/&#x27;</span> + url, grayscale=<span class="literal">True</span>)</span><br><span class="line">            label = img_to_array(label)</span><br><span class="line">            valid_label.append(label)</span><br><span class="line">            <span class="keyword">if</span> batch % batch_size == <span class="number">0</span>:</span><br><span class="line">                valid_data = np.array(valid_data)</span><br><span class="line">                valid_label = np.array(valid_label)</span><br><span class="line">                <span class="keyword">yield</span> (valid_data, valid_label)</span><br><span class="line">                valid_data = []</span><br><span class="line">                valid_label = []</span><br><span class="line">                batch = <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<h2 id="模型搭建训练和改进"><a href="#模型搭建训练和改进" class="headerlink" title="模型搭建训练和改进"></a>模型搭建训练和改进</h2><h3 id="UNet网络的介绍"><a href="#UNet网络的介绍" class="headerlink" title="UNet网络的介绍"></a>UNet网络的介绍</h3><p>Unet网络结构如其名呈现一个U字形，即由卷积和池化单元构成。左半边为编码器，即如传统的分类网络是“下采样阶段”；右半边为解码器，是“上采样阶段”。中间的灰色箭头为跳跃连接，将浅层的特征与深层的特征拼接。因为浅层通常可以抓取图像的一些简单的特征，比如边界、颜色，而深层经过的卷积操作多抓取到图像的一些抽象特征，将浅深同时利用起来会起到比较好的效果。Unet的效果图如下：</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-1.png?raw=true"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-2.png?raw=true" alt="alt text"></p>
+<h3 id="训练函数的定义"><a href="#训练函数的定义" class="headerlink" title="训练函数的定义"></a>训练函数的定义</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">train</span>(<span class="params">mselect</span>): </span><br><span class="line">    EPOCHS = <span class="number">10</span></span><br><span class="line">    BS = <span class="number">16</span>  </span><br><span class="line">    <span class="keyword">if</span>(mselect==<span class="string">&#x27;UNet&#x27;</span>):</span><br><span class="line">        model = unet()</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        model = unet_new()</span><br><span class="line">    <span class="keyword">if</span>(mselect==<span class="string">&#x27;UNet&#x27;</span>):</span><br><span class="line">        modelcheck = ModelCheckpoint(<span class="string">&#x27;model.h5&#x27;</span>,monitor=<span class="string">&#x27;val_acc&#x27;</span>,save_best_only=<span class="literal">True</span>,mode=<span class="string">&#x27;max&#x27;</span>)  </span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        modelcheck = ModelCheckpoint(<span class="string">&#x27;/root/data/Lab4/Lab4-data/models/model_new_&#123;epoch:02d&#125;_&#123;val_accuracy:.2f&#125;.h5&#x27;</span>,monitor=<span class="string">&#x27;val_acc&#x27;</span>,save_best_only=<span class="literal">False</span>,mode=<span class="string">&#x27;max&#x27;</span>,save_freq=<span class="string">&#x27;epoch&#x27;</span>) </span><br><span class="line">    <span class="built_in">callable</span> = [modelcheck]  </span><br><span class="line">    train_set,val_set = get_train_val()</span><br><span class="line">    train_numb = <span class="built_in">len</span>(train_set)  </span><br><span class="line">    valid_numb = <span class="built_in">len</span>(val_set)  </span><br><span class="line">    <span class="built_in">print</span> (<span class="string">&quot;the number of train data is&quot;</span>,train_numb)  </span><br><span class="line">    <span class="built_in">print</span> (<span class="string">&quot;the number of val data is&quot;</span>,valid_numb)</span><br><span class="line">    H = model.fit_generator(generator=generateData(BS,train_set),steps_per_epoch=train_numb//BS,epochs=EPOCHS,verbose=<span class="number">1</span>,  </span><br><span class="line">                    validation_data=generateValidData(BS,val_set),validation_steps=valid_numb//BS,callbacks=<span class="built_in">callable</span>,max_queue_size=<span class="number">1</span>)  </span><br><span class="line"></span><br><span class="line">    <span class="comment"># plot the training loss and accuracy</span></span><br><span class="line">    plt.style.use(<span class="string">&quot;ggplot&quot;</span>)</span><br><span class="line">    plt.figure()</span><br><span class="line">    N = EPOCHS</span><br><span class="line">    plt.plot(np.arange(<span class="number">0</span>, N), H.history[<span class="string">&quot;loss&quot;</span>], label=<span class="string">&quot;train_loss&quot;</span>)</span><br><span class="line">    plt.plot(np.arange(<span class="number">0</span>, N), H.history[<span class="string">&quot;val_loss&quot;</span>], label=<span class="string">&quot;val_loss&quot;</span>)</span><br><span class="line">    plt.plot(np.arange(<span class="number">0</span>, N), H.history[<span class="string">&quot;accuracy&quot;</span>], label=<span class="string">&quot;train_acc&quot;</span>)</span><br><span class="line">    plt.plot(np.arange(<span class="number">0</span>, N), H.history[<span class="string">&quot;val_accuracy&quot;</span>], label=<span class="string">&quot;val_acc&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(mselect==<span class="string">&#x27;UNet&#x27;</span>):</span><br><span class="line">        plt.title(<span class="string">&quot;Training Loss and Accuracy on U-Net Satellite Seg&quot;</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        plt.title(<span class="string">&quot;Training Loss and Accuracy on U-Net_new Satellite Seg&quot;</span>)</span><br><span class="line">    plt.xlabel(<span class="string">&quot;Epoch #&quot;</span>)</span><br><span class="line">    plt.ylabel(<span class="string">&quot;Loss/Accuracy&quot;</span>)</span><br><span class="line">    plt.legend(loc=<span class="string">&quot;lower left&quot;</span>)</span><br><span class="line">    plt.savefig(<span class="string">&#x27;/root/data/Lab4/Lab4-data/plot.png&#x27;</span>)</span><br><span class="line">    plt.show()</span><br></pre></td></tr></table></figure>
+<h3 id="unet网络的定义"><a href="#unet网络的定义" class="headerlink" title="unet网络的定义"></a>unet网络的定义</h3><p>池化层采用最大池化，激活函数采用relu，上采样的线性插值方式采取keras的UpSampling2D方法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">unet</span>():</span><br><span class="line">    inputs = Input((<span class="number">3</span>, width, height))</span><br><span class="line"></span><br><span class="line">    conv1 = Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(inputs)</span><br><span class="line">    conv1 = Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv1)</span><br><span class="line">    pool1 = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv1)</span><br><span class="line"></span><br><span class="line">    conv2 = Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(pool1)</span><br><span class="line">    conv2 = Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv2)</span><br><span class="line">    pool2 = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv2)</span><br><span class="line"></span><br><span class="line">    conv3 = Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(pool2)</span><br><span class="line">    conv3 = Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv3)</span><br><span class="line">    pool3 = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv3)</span><br><span class="line"></span><br><span class="line">    conv4 = Conv2D(<span class="number">256</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(pool3)</span><br><span class="line">    conv4 = Conv2D(<span class="number">256</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv4)</span><br><span class="line">    pool4 = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv4)</span><br><span class="line"></span><br><span class="line">    conv5 = Conv2D(<span class="number">512</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(pool4)</span><br><span class="line">    conv5 = Conv2D(<span class="number">512</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv5)</span><br><span class="line"></span><br><span class="line">    up6 = concatenate([UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv5), conv4], axis=<span class="number">1</span>)</span><br><span class="line">    conv6 = Conv2D(<span class="number">256</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(up6)</span><br><span class="line">    conv6 = Conv2D(<span class="number">256</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv6)</span><br><span class="line"></span><br><span class="line">    up7 = concatenate([UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv6), conv3], axis=<span class="number">1</span>)</span><br><span class="line">    conv7 = Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(up7)</span><br><span class="line">    conv7 = Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv7)</span><br><span class="line"></span><br><span class="line">    up8 = concatenate([UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv7), conv2], axis=<span class="number">1</span>)</span><br><span class="line">    conv8 = Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(up8)</span><br><span class="line">    conv8 = Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv8)</span><br><span class="line"></span><br><span class="line">    up9 = concatenate([UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv8), conv1], axis=<span class="number">1</span>)</span><br><span class="line">    conv9 = Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(up9)</span><br><span class="line">    conv9 = Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&quot;relu&quot;</span>, padding=<span class="string">&quot;same&quot;</span>)(conv9)</span><br><span class="line"></span><br><span class="line">    conv10 = Conv2D(<span class="number">1</span>, (<span class="number">1</span>, <span class="number">1</span>), activation=<span class="string">&quot;sigmoid&quot;</span>)(conv9)</span><br><span class="line">    <span class="comment">#conv10 = Conv2D(n_label, (1, 1), activation=&quot;softmax&quot;)(conv9)</span></span><br><span class="line"></span><br><span class="line">    model = Model(inputs=inputs, outputs=conv10)</span><br><span class="line">    model.<span class="built_in">compile</span>(optimizer=<span class="string">&#x27;Adam&#x27;</span>, loss=<span class="string">&#x27;binary_crossentropy&#x27;</span>, metrics=[<span class="string">&#x27;accuracy&#x27;</span>])</span><br><span class="line"><span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+<h3 id="训练unet网络"><a href="#训练unet网络" class="headerlink" title="训练unet网络"></a>训练unet网络</h3><p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-3.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-4.png?raw=true" alt="alt text"></p>
+<h3 id="模型改进"><a href="#模型改进" class="headerlink" title="模型改进"></a>模型改进</h3><p>我们对原来的unet网络增加了下采样层，并且设定了权重的随机初始化，池化方式更改为平均池化，并且在网络中加入了批规范化BatchNormalization的处理，基于梯度的训练过程可以更加有效的进行，即加快收敛速度，减轻梯度消失或爆炸导致的无法训练的问题，并且增加了Dropout的机制，有效的防止过拟合。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">unet_new</span>():</span><br><span class="line"> </span><br><span class="line">    inputs = Input((width, height, <span class="number">3</span>))<span class="comment">#改进</span></span><br><span class="line">    conv1 = Conv2D(<span class="number">8</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(inputs)</span><br><span class="line">    pool1 = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv1)  <span class="comment"># 16</span></span><br><span class="line"></span><br><span class="line">    conv2 = BatchNormalization(momentum=<span class="number">0.99</span>)(pool1)</span><br><span class="line">    conv2 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv2)</span><br><span class="line">    conv2 = BatchNormalization(momentum=<span class="number">0.99</span>)(conv2)</span><br><span class="line">    conv2 = Conv2D(<span class="number">64</span>, <span class="number">1</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv2)</span><br><span class="line">    conv2 = Dropout(<span class="number">0.02</span>)(conv2)</span><br><span class="line">    pool2 = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv2)  <span class="comment"># 8</span></span><br><span class="line"></span><br><span class="line">    conv3 = BatchNormalization(momentum=<span class="number">0.99</span>)(pool2)</span><br><span class="line">    conv3 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv3)</span><br><span class="line">    conv3 = BatchNormalization(momentum=<span class="number">0.99</span>)(conv3)</span><br><span class="line">    conv3 = Conv2D(<span class="number">128</span>, <span class="number">1</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv3)</span><br><span class="line">    conv3 = Dropout(<span class="number">0.02</span>)(conv3)</span><br><span class="line">    pool3 = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv3)  <span class="comment"># 4</span></span><br><span class="line"></span><br><span class="line">    conv4 = BatchNormalization(momentum=<span class="number">0.99</span>)(pool3)</span><br><span class="line">    conv4 = Conv2D(<span class="number">256</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv4)</span><br><span class="line">    conv4 = BatchNormalization(momentum=<span class="number">0.99</span>)(conv4)</span><br><span class="line">    conv4 = Conv2D(<span class="number">256</span>, <span class="number">1</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv4)</span><br><span class="line">    conv4 = Dropout(<span class="number">0.02</span>)(conv4)</span><br><span class="line">    pool4 = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv4)</span><br><span class="line"></span><br><span class="line">    conv5 = BatchNormalization(momentum=<span class="number">0.99</span>)(pool4)</span><br><span class="line">    conv5 = Conv2D(<span class="number">512</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv5)</span><br><span class="line">    conv5 = BatchNormalization(momentum=<span class="number">0.99</span>)(conv5)</span><br><span class="line">    conv5 = Conv2D(<span class="number">512</span>, <span class="number">1</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv5)</span><br><span class="line">    conv5 = Dropout(<span class="number">0.02</span>)(conv5)</span><br><span class="line">    pool4 = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(conv4)</span><br><span class="line"><span class="comment"># conv5 = Conv2D(35, 3, activation=&#x27;relu&#x27;, padding=&#x27;same&#x27;, kernel_initializer=&#x27;he_normal&#x27;)(conv4)</span></span><br><span class="line"><span class="comment"># drop4 = Dropout(0.02)(conv5)</span></span><br><span class="line">    pool4 = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(pool3)  <span class="comment"># 2</span></span><br><span class="line">    pool5 = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>))(pool4)  <span class="comment"># 1</span></span><br><span class="line"></span><br><span class="line">    conv6 = BatchNormalization(momentum=<span class="number">0.99</span>)(pool5)</span><br><span class="line">    conv6 = Conv2D(<span class="number">256</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv6)</span><br><span class="line"></span><br><span class="line">    conv7 = Conv2D(<span class="number">256</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv6)</span><br><span class="line">    up7 = (UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv7))  <span class="comment"># 2</span></span><br><span class="line">    conv7 = Conv2D(<span class="number">256</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(up7)</span><br><span class="line">    merge7 = concatenate([pool4, conv7], axis=<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">    conv8 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(merge7)</span><br><span class="line">    up8 = (UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv8))  <span class="comment"># 4</span></span><br><span class="line">    conv8 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(up8)</span><br><span class="line">    merge8 = concatenate([pool3, conv8], axis=<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">    conv9 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(merge8)</span><br><span class="line">    up9 = (UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv9))  <span class="comment"># 8</span></span><br><span class="line">    conv9 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(up9)</span><br><span class="line">    merge9 = concatenate([pool2, conv9], axis=<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">    conv10 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(merge9)</span><br><span class="line">    up10 = (UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv10))  <span class="comment"># 16</span></span><br><span class="line">    conv10 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(up10)</span><br><span class="line"></span><br><span class="line">    conv11 = Conv2D(<span class="number">16</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv10)</span><br><span class="line">    up11 = (UpSampling2D(size=(<span class="number">2</span>, <span class="number">2</span>))(conv11))  <span class="comment"># 32</span></span><br><span class="line">    conv11 = Conv2D(<span class="number">8</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(up11)</span><br><span class="line"></span><br><span class="line"><span class="comment"># conv12 = Conv2D(3, 1, activation=&#x27;relu&#x27;, padding=&#x27;same&#x27;, kernel_initializer=&#x27;he_normal&#x27;)(conv11)</span></span><br><span class="line">    conv12 = Conv2D(<span class="number">1</span>, <span class="number">1</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)(conv11)</span><br><span class="line"></span><br><span class="line">    model = Model(<span class="built_in">input</span>=inputs, output=conv12)</span><br><span class="line">    <span class="comment">#print(model.summary())</span></span><br><span class="line">    model.<span class="built_in">compile</span>(optimizer=<span class="string">&#x27;adam&#x27;</span>, loss=<span class="string">&#x27;mse&#x27;</span>, metrics=[<span class="string">&#x27;accuracy&#x27;</span>])</span><br><span class="line">      </span><br><span class="line">    <span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+<h3 id="模型结构"><a href="#模型结构" class="headerlink" title="模型结构"></a>模型结构</h3><p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-5.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-6.png?raw=true" alt="alt text"></p>
+<h3 id="训练改进后的模型"><a href="#训练改进后的模型" class="headerlink" title="训练改进后的模型"></a>训练改进后的模型</h3><p>可以看到，经过改进后，训练函数的收敛迅速，并且准确率也得到了明显的提高</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-7.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-8.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-9.png?raw=true" alt="alt text"></p>
+<h2 id="模型使用"><a href="#模型使用" class="headerlink" title="模型使用"></a>模型使用</h2><h3 id="引入组件包"><a href="#引入组件包" class="headerlink" title="引入组件包"></a>引入组件包</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> keras.preprocessing.image <span class="keyword">import</span> img_to_array</span><br><span class="line"><span class="keyword">from</span> keras.models <span class="keyword">import</span> load_model</span><br><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> LabelEncoder  </span><br><span class="line">os.environ[<span class="string">&quot;CUDA_VISIBLE_DEVICES&quot;</span>] = <span class="string">&quot;0&quot;</span></span><br></pre></td></tr></table></figure>
+<h3 id="设置测试数据的格式和标签"><a href="#设置测试数据的格式和标签" class="headerlink" title="设置测试数据的格式和标签"></a>设置测试数据的格式和标签</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">image_size = <span class="number">512</span></span><br><span class="line">classes = [<span class="number">0.</span> ,  <span class="number">1.</span>,  <span class="number">2.</span>,   <span class="number">3.</span>  , <span class="number">4.</span>]</span><br><span class="line">TEST_SET = [<span class="string">&#x27;/root/data/Lab4/Lab4-data/test.png&#x27;</span>]</span><br><span class="line">labelencoder = LabelEncoder()  </span><br><span class="line">labelencoder.fit(classes) </span><br></pre></td></tr></table></figure>
+<h3 id="定义预测函数，加载预测模型"><a href="#定义预测函数，加载预测模型" class="headerlink" title="定义预测函数，加载预测模型"></a>定义预测函数，加载预测模型</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">predict</span>():</span><br><span class="line">    <span class="comment"># load the trained convolutional neural network</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[INFO] loading network...&quot;</span>)</span><br><span class="line">    model = load_model(<span class="string">&#x27;/root/data/Lab4/Lab4-data/model.h5&#x27;</span>)</span><br><span class="line">    stride = <span class="number">512</span></span><br><span class="line">    <span class="keyword">for</span> n <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(TEST_SET)):</span><br><span class="line">        path = TEST_SET[n]</span><br><span class="line">        <span class="comment">#load the image</span></span><br><span class="line">        image = cv2.imread(path)</span><br><span class="line">        </span><br><span class="line">        h,w,_ = image.shape</span><br><span class="line">        </span><br><span class="line">        padding_h = (h//stride + <span class="number">1</span>) * stride </span><br><span class="line">        padding_w = (w//stride + <span class="number">1</span>) * stride</span><br><span class="line">        padding_img = np.zeros((padding_h,padding_w,<span class="number">3</span>),dtype=np.uint8)</span><br><span class="line">        padding_img[<span class="number">0</span>:h,<span class="number">0</span>:w,:] = image[:,:,:]</span><br><span class="line">        <span class="comment">#padding_img = padding_img.astype(&quot;float&quot;) / 255.0</span></span><br><span class="line">        padding_img = img_to_array(padding_img)</span><br><span class="line">        </span><br><span class="line">        <span class="built_in">print</span> (<span class="string">&#x27;src:&#x27;</span>,padding_img.shape)</span><br><span class="line">        mask_whole = np.zeros((padding_h,padding_w),dtype=np.uint8)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(padding_h//stride):</span><br><span class="line">            <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(padding_w//stride):</span><br><span class="line">                crop = padding_img[i*stride:i*stride+image_size,j*stride:j*stride+image_size,:<span class="number">3</span>]<span class="comment">#trick</span></span><br><span class="line">               </span><br><span class="line">                <span class="comment">#_,ch,cw = crop.shape</span></span><br><span class="line"><span class="comment">#                 if ch != 512 or cw != 512:</span></span><br><span class="line"><span class="comment">#                     print (&#x27;invalid size!&#x27;)</span></span><br><span class="line"><span class="comment">#                     continue</span></span><br><span class="line">                </span><br><span class="line">                crop = np.expand_dims(crop, axis=<span class="number">0</span>) </span><br><span class="line">                </span><br><span class="line">                <span class="comment">#crop.transpose(0,3,2,1)</span></span><br><span class="line">                </span><br><span class="line">               <span class="comment"># crop.reshape(1,3,512,512)</span></span><br><span class="line">                <span class="comment">#print(crop.shape)</span></span><br><span class="line">                pred = model.predict(crop.transpose(<span class="number">0</span>,<span class="number">3</span>,<span class="number">1</span>,<span class="number">2</span>),verbose=<span class="number">2</span>)</span><br><span class="line">                <span class="comment">#print (np.unique(pred))  </span></span><br><span class="line">                pred = pred.reshape((<span class="number">512</span>,<span class="number">512</span>)).astype(np.uint8)</span><br><span class="line">                <span class="comment">#print &#x27;pred:&#x27;,pred.shape</span></span><br><span class="line">                mask_whole[i*stride:i*stride+image_size,j*stride:j*stride+image_size] = pred[:,:]</span><br><span class="line"></span><br><span class="line">        </span><br><span class="line">        cv2.imwrite(<span class="string">&#x27;pre&#x27;</span>+<span class="built_in">str</span>(n+<span class="number">1</span>)+<span class="string">&#x27;.png&#x27;</span>,mask_whole[<span class="number">0</span>:h,<span class="number">0</span>:w])</span><br></pre></td></tr></table></figure>
+<h3 id="生成预测结果"><a href="#生成预测结果" class="headerlink" title="生成预测结果"></a>生成预测结果</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> keras <span class="keyword">import</span> backend <span class="keyword">as</span> K</span><br><span class="line"></span><br><span class="line"><span class="comment"># K.set_image_dim_ordering(&#x27;th&#x27;)#trick</span></span><br><span class="line">predict()</span><br></pre></td></tr></table></figure>
+<h3 id="图像分割结果可视化"><a href="#图像分割结果可视化" class="headerlink" title="图像分割结果可视化"></a>图像分割结果可视化</h3><p>加载原始图像</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">img_org = cv2.imread(<span class="string">&#x27;/root/data/Lab4/Lab4-data/test.png&#x27;</span>, cv2.IMREAD_GRAYSCALE)</span><br><span class="line">plt.imshow(img_org)</span><br><span class="line">plt.savefig(<span class="string">&#x27;img_org.png&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-10.png?raw=true" alt="alt text"><br>预测结果可视化</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 加载模型预测结果</span></span><br><span class="line">img_label = cv2.imread(<span class="string">&#x27;/root/data/Lab4/Lab4-data/pre1.png&#x27;</span>, cv2.IMREAD_GRAYSCALE)</span><br><span class="line"><span class="comment"># 像素放大</span></span><br><span class="line">img_label*=<span class="number">30</span></span><br><span class="line">plt.imshow(img_label)</span><br><span class="line">plt.savefig(<span class="string">&#x27;img_label.png&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-11.png?raw=true" alt="alt text"></p>
+<p>合并模型结果与原始图像，可以看到模型比较成功地将植被与背景环境分割开来，基本达到了预期效果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">img_show = cv2.addWeighted(img_org, <span class="number">0.1</span>, img_label, <span class="number">0.8</span>, <span class="number">0</span>,dtype = cv2.CV_32F) </span><br><span class="line">plt.imshow(img_show)</span><br><span class="line">plt.savefig(<span class="string">&#x27;weight.png&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-12.png?raw=true" alt="alt text"></p>
+<h1 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h1><p>我们可以看到，在unet中除最后一个层激活函数为sigmoid，其余均为relu，而默认的初始化方法为Xavier初始化，显然不满足神经元激活均值为0的假设，而unet_new的激活函数均为relu，采用了He初始化</p>
+<p>Unet采用的是2*2最大池化，对邻域内特征点取最大。</p>
+<p>正向传播：取邻域内最大，并记住最大值的索引位置。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-14.png?raw=true" alt="alt text"></p>
+<p>反向传播：将特征值填充到正向传播中值最大的索引位置，其他位置补0</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-15.png?raw=true" alt="alt text"></p>
+<p>unet_new采用的是2*2的平均池化，邻域内特征点只求平均。</p>
+<p>正向传播：邻域内取平均。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-16.png?raw=true" alt="alt text"></p>
+<p>反向传播：特征值根据邻域大小被平均，然后传给每个索引位置。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-17.png?raw=true" alt="alt text"></p>
+<p>unet_new还采用了drop-out，对于一次迭代中的某一层神经网络，先随机选择中的一些神经元并将其临时隐藏(丢弃)，然后再进行本次训练和优化。在下一次迭代中，继续随机隐藏一些神经元，如此直至训练结束。由于是随机丢弃，故而每一个mini-batch都在训练不同的网络，可以有效防止过拟合。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/ml-18.png?raw=true" alt="alt text"></p>
+<h2 id="Xavier初始化"><a href="#Xavier初始化" class="headerlink" title="Xavier初始化"></a>Xavier初始化</h2><p>Xavier初始化，由Xavier Glorot 在2010年的论文 Understanding the difficulty of training deep feedforward neural networks 提出。为了避免梯度爆炸或者梯度消失，有两个经验性的准则:</p>
+<ol>
+<li>每一层神经元激活值的均值要保持为 0</li>
+<li>每一层激活的方差应该保持不变。</li>
+</ol>
+<p>在正向传播时，每层的激活值的方差保持不变；在反向传播时，每层的梯度值的方差保持不变。<br>基于上述的准则，初始的权值参数 $W^l$ ( $l$ 为网络的第 $l$ 层) 要符合以下公式<br>$$<br>\begin{aligned}<br>W^{[l]} &amp; \sim \mathcal{N}\left(\mu&#x3D;0, \sigma^2&#x3D;\frac{1}{n^{[l-1]}}\right) \<br>b^{[l]} &amp; &#x3D;0<br>\end{aligned}<br>$$</p>
+<p>其中 $n^{n-1}$ 是第 $l-1$ 层的神经元的个数。也就是说，初始的权值 $w$ 可以从均值 $\mu&#x3D;0$ ，方差为 $\sigma^2&#x3D;\frac{1}{n^{l-1}}$ 的正态分布 $\mathrm{Q}$ 中随机选取。</p>
+<h2 id="He初始化-MSRA"><a href="#He初始化-MSRA" class="headerlink" title="He初始化 (MSRA)"></a>He初始化 (MSRA)</h2><p>由 Kaiming 在论文Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification提出，由于Xavier的假设条件是激活函数是关于0对称的，而常用的ReLU激活函数并不能满足该条件。</p>
+<p>只考虑输入的个数，MSRA的初始化是一个均值为 0 ，方差为 $\sqrt{\frac{2}{F_{\text {in }}}}$ 的高斯分布<br>$$<br>w \sim G\left[0, \sqrt{\frac{2}{F_{i n}}}\right]<br>$$</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/22/oslab5/" rel="prev" title="磁盘调度">
+      <i class="fa fa-chevron-left"></i> 磁盘调度
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/06/08/lab4/" rel="next" title="基于前馈神经网络的姓氏分类">
+      基于前馈神经网络的姓氏分类 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BB%E8%A6%81%E7%9B%AE%E6%A0%87"><span class="nav-number">1.</span> <span class="nav-text">主要目标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">实验过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.</span> <span class="nav-text">基本原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%B5%81%E7%A8%8B"><span class="nav-number">2.1.1.</span> <span class="nav-text">图像分割的基本流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8B%E9%87%87%E6%A0%B7%E4%B8%8E%E4%B8%8A%E9%87%87%E6%A0%B7"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">下采样与上采样</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E5%B0%BA%E5%BA%A6%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">多尺度特征融合</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%BE%97%E5%83%8F%E7%B4%A0%E7%BA%A7%E5%88%AB%E7%9A%84segmentation-map"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">获得像素级别的segmentation map</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E8%BF%87%E7%A8%8B"><span class="nav-number">2.1.2.</span> <span class="nav-text">训练过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%85%A5%E7%BB%84%E4%BB%B6%E5%8C%85"><span class="nav-number">2.1.3.</span> <span class="nav-text">导入组件包</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E6%95%B0%E6%8D%AE"><span class="nav-number">2.2.</span> <span class="nav-text">准备数据</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E5%B0%BA%E5%BA%A6%E5%86%9C%E4%BD%9C%E7%89%A9%E5%8D%AB%E6%98%9F%E9%81%A5%E6%84%9F%E6%95%B0%E6%8D%AE"><span class="nav-number">2.2.1.</span> <span class="nav-text">大尺度农作物卫星遥感数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90%E5%9C%B0%E5%9D%80"><span class="nav-number">2.2.2.</span> <span class="nav-text">数据来源地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number">2.2.3.</span> <span class="nav-text">数据可视化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E6%95%B0%E6%8D%AE%E5%92%8C%E6%A0%87%E7%AD%BE"><span class="nav-number">2.2.4.</span> <span class="nav-text">设置数据和标签</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BE%E7%89%87%E5%8A%A0%E8%BD%BD%E5%87%BD%E6%95%B0"><span class="nav-number">2.2.5.</span> <span class="nav-text">图片加载函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E8%AE%AD%E7%BB%83%E5%8F%82%E6%95%B0%E5%92%8C%E6%95%B0%E6%8D%AE"><span class="nav-number">2.2.6.</span> <span class="nav-text">定义训练参数和数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%90%AD%E5%BB%BA%E8%AE%AD%E7%BB%83%E5%92%8C%E6%94%B9%E8%BF%9B"><span class="nav-number">2.3.</span> <span class="nav-text">模型搭建训练和改进</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#UNet%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.3.1.</span> <span class="nav-text">UNet网络的介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E5%87%BD%E6%95%B0%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-number">2.3.2.</span> <span class="nav-text">训练函数的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unet%E7%BD%91%E7%BB%9C%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-number">2.3.3.</span> <span class="nav-text">unet网络的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83unet%E7%BD%91%E7%BB%9C"><span class="nav-number">2.3.4.</span> <span class="nav-text">训练unet网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%94%B9%E8%BF%9B"><span class="nav-number">2.3.5.</span> <span class="nav-text">模型改进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84"><span class="nav-number">2.3.6.</span> <span class="nav-text">模型结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E6%94%B9%E8%BF%9B%E5%90%8E%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.3.7.</span> <span class="nav-text">训练改进后的模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E4%BD%BF%E7%94%A8"><span class="nav-number">2.4.</span> <span class="nav-text">模型使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E5%85%A5%E7%BB%84%E4%BB%B6%E5%8C%85"><span class="nav-number">2.4.1.</span> <span class="nav-text">引入组件包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E6%B5%8B%E8%AF%95%E6%95%B0%E6%8D%AE%E7%9A%84%E6%A0%BC%E5%BC%8F%E5%92%8C%E6%A0%87%E7%AD%BE"><span class="nav-number">2.4.2.</span> <span class="nav-text">设置测试数据的格式和标签</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E9%A2%84%E6%B5%8B%E5%87%BD%E6%95%B0%EF%BC%8C%E5%8A%A0%E8%BD%BD%E9%A2%84%E6%B5%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.4.3.</span> <span class="nav-text">定义预测函数，加载预测模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E9%A2%84%E6%B5%8B%E7%BB%93%E6%9E%9C"><span class="nav-number">2.4.4.</span> <span class="nav-text">生成预测结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%BB%93%E6%9E%9C%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number">2.4.5.</span> <span class="nav-text">图像分割结果可视化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">实验总结</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Xavier%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.1.</span> <span class="nav-text">Xavier初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#He%E5%88%9D%E5%A7%8B%E5%8C%96-MSRA"><span class="nav-number">3.2.</span> <span class="nav-text">He初始化 (MSRA)</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁，而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">145k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:11</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

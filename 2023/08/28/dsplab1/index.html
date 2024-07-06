@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="实验目的和要求实验目的卷积作为一种基本的信号处理方法，拥有许 多不同的变体和应用。通过选择合适的卷积算 法，我们可以更好地处理各种类型的信号数据， 从而为我们解决实际问题提供更好的支持。 通过本次课程设计，使得学生能够充分了 解卷积的相关定义、计算和定理；使得学生能 够使用GUI&#x2F;app design进行图形化界面设计。 实验要求 用matlab完成线性卷积的计算过程，并绘图;使用GUI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于MATLAB的卷积演示系统">
+<meta property="og:url" content="http://example.com/2023/08/28/dsplab1/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="实验目的和要求实验目的卷积作为一种基本的信号处理方法，拥有许 多不同的变体和应用。通过选择合适的卷积算 法，我们可以更好地处理各种类型的信号数据， 从而为我们解决实际问题提供更好的支持。 通过本次课程设计，使得学生能够充分了 解卷积的相关定义、计算和定理；使得学生能 够使用GUI&#x2F;app design进行图形化界面设计。 实验要求 用matlab完成线性卷积的计算过程，并绘图;使用GUI">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp.gif?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-1.gif?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-2.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-1.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-3.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-4.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-5.png?raw=true">
+<meta property="article:published_time" content="2023-08-28T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-06T07:55:55.675Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp.gif?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/08/28/dsplab1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>基于MATLAB的卷积演示系统 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/28/dsplab1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁，而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于MATLAB的卷积演示系统
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-08-28 14:00:00" itemprop="dateCreated datePublished" datetime="2023-08-28T14:00:00+08:00">2023-08-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-07-06 15:55:55" itemprop="dateModified" datetime="2024-07-06T15:55:55+08:00">2024-07-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Digital-Signal-Processing/" itemprop="url" rel="index"><span itemprop="name">Digital Signal Processing</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="实验目的和要求"><a href="#实验目的和要求" class="headerlink" title="实验目的和要求"></a>实验目的和要求</h1><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>卷积作为一种基本的信号处理方法，拥有许 多不同的变体和应用。通过选择合适的卷积算 法，我们可以更好地处理各种类型的信号数据， 从而为我们解决实际问题提供更好的支持。 通过本次课程设计，使得学生能够充分了 解卷积的相关定义、计算和定理；使得学生能 够使用GUI&#x2F;app design进行图形化界面设计。</p>
+<h2 id="实验要求"><a href="#实验要求" class="headerlink" title="实验要求"></a>实验要求</h2><ul>
+<li>用matlab完成线性卷积的计算过程，并绘图;使用GUI&#x2F;app design设计一个线性卷积的基本演 示系统；要求两个卷积信号的参数可以自由给定；设计框图中直接包含“计算按钮” ，直接计算卷积结果</li>
+<li>分析卷积计算结果<span id="more"></span></li>
+</ul>
+<h1 id="实验原理"><a href="#实验原理" class="headerlink" title="实验原理"></a>实验原理</h1><h2 id="线性卷积"><a href="#线性卷积" class="headerlink" title="线性卷积"></a>线性卷积</h2><p>设两序列 $x(n), h(n)$,其线性卷积定义为<br>$$<br>y(n)&#x3D;\sum_{m&#x3D;-\infty}^{\infty} x(m) * h(n-m)<br>$$<br>(1)翻褶: $\quad h(m) \rightarrow h(-m)$</p>
+<p>(2) 移位: $h(-m) \rightarrow h(n-m)$</p>
+<p>(3) 相乘: $x(m) h(n-m)$</p>
+<p>(4) 相加: $\sum_{m&#x3D;-\infty}^{\infty} x(m) h(n-m)$</p>
+<h2 id="圆周卷积"><a href="#圆周卷积" class="headerlink" title="圆周卷积"></a>圆周卷积</h2><p>设 $x(n), h(n)$ 为 $N$ 点有限长序列, 其圆周卷积定义为<br>$$<br>y(n)&#x3D;\sum_{m&#x3D;0}^{N-1} x_1(m) x_2((n-m))_N R_N(n)\space\space\space\space\space\space\space\space\space N 点圆周卷积<br>$$<br>圆周卷积时域过程:</p>
+<ol>
+<li>补零: $x_1(n), x_2(n)$ 补零至 $N$ 点长</li>
+<li>周期延拓: $x_2(m)$ 周期延拓为 $x_2((m))_N$</li>
+<li>翻褶, 取主值序列: $x_2((-m))_N R_N(m)$</li>
+<li>圆周移位: $x_2((n-m))_N R_N(m)$</li>
+<li>相乘相加: $x_1(m) x_2((n-m))_N R_N(m)$</li>
+</ol>
+<p>圆周卷积频域过程<br>$$<br>\begin{gathered}<br>D F T\left[x_1(n)\right]&#x3D;X_1(k) \quad \operatorname{DFT}\left[x_2(n)\right]&#x3D;X_2(k) \\<br>\text { 若 } Y(k)&#x3D;X_1(k) \cdot X_2(k) \\<br>y(n)&#x3D;I D F T[Y(k)]&#x3D;\left[\sum_{m&#x3D;0}^{N-1} x_1(m) x_2((n-m))_N\right] R_N(n)<br>\end{gathered}<br>$$</p>
+<h2 id="二者关系"><a href="#二者关系" class="headerlink" title="二者关系"></a>二者关系</h2><p>$$<br>x_1(n) Ⓝ  x_2(n)&#x3D;x_1(n) * x_2(n)\left\{\begin{array}{c}<br>N \geq N_1+N_2-1 \\<br>0 \leq n \leq N_1+N_2-2<br>\end{array}\right.<br>$$</p>
+<h1 id="实验方法与内容"><a href="#实验方法与内容" class="headerlink" title="实验方法与内容"></a>实验方法与内容</h1><h2 id="实验思路"><a href="#实验思路" class="headerlink" title="实验思路"></a>实验思路</h2><p>用matlab设计卷积演示界面，然后设计两个有限长序列，当演示时进行输入。要求能够体现翻褶，移位，相加，相乘。</p>
+<h2 id="需求分析"><a href="#需求分析" class="headerlink" title="需求分析"></a>需求分析</h2><h3 id="线性卷积需求分析"><a href="#线性卷积需求分析" class="headerlink" title="线性卷积需求分析"></a>线性卷积需求分析</h3><p>(1) 线性卷积的翻褶: $h(m) \rightarrow h(-m)$, 可通过以 $\mathrm{y}$ 轴为对称翻转。</p>
+<p>(2) 线性卷积的移位: 将 $h(-m)$ 移位 $n$, 得 $h(n-m)$ 。当 $n$ 为正, 右移, $n$ 为负, 左移。</p>
+<p>(3) 线性卷积的相乘：将对应点相乘。</p>
+<p>(4) 线性卷积的相加：将对应点相加。</p>
+<h3 id="圆周卷积需求分析"><a href="#圆周卷积需求分析" class="headerlink" title="圆周卷积需求分析"></a>圆周卷积需求分析</h3><p>圆周卷积可通过三个步骤完成</p>
+<p>(1) 初始化：确定 $\mathrm{N}$ ，若序列长度小于 $\mathrm{N}$ 则补 0</p>
+<p>(2) 右移: 将序列 $\times(n)$ 循环右移, 移动 $N$ 次, 得到矩阵</p>
+<p>(3) 相乘：将得到的矩阵和第二个序列相乘, 得到结果</p>
+<p>然后进行时域演示和频域演示</p>
+<h1 id="实验结果及分析"><a href="#实验结果及分析" class="headerlink" title="实验结果及分析"></a>实验结果及分析</h1><h2 id="线性卷积演示"><a href="#线性卷积演示" class="headerlink" title="线性卷积演示"></a>线性卷积演示</h2><p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp.gif?raw=true" alt="alt text"></p>
+<h2 id="圆周卷积时域演示"><a href="#圆周卷积时域演示" class="headerlink" title="圆周卷积时域演示"></a>圆周卷积时域演示</h2><p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-1.gif?raw=true" alt="alt text"></p>
+<h2 id="圆周卷积频域演示"><a href="#圆周卷积频域演示" class="headerlink" title="圆周卷积频域演示"></a>圆周卷积频域演示</h2><p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-2.png?raw=true"></p>
+<h2 id="两者关系验证"><a href="#两者关系验证" class="headerlink" title="两者关系验证"></a>两者关系验证</h2><p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-1.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-3.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-4.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-5.png?raw=true" alt="alt text"><br>当 $\mathrm{L}&#x3D;\mathrm{N} 1+\mathrm{N} 2$ 时, 线性卷积和圆周卷积结果相等。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2023/11/15/dsplab2/" rel="next" title="基于MATLAB的语音信号去噪">
+      基于MATLAB的语音信号去噪 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E7%9A%84%E5%92%8C%E8%A6%81%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">实验目的和要求</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E7%9A%84"><span class="nav-number">1.1.</span> <span class="nav-text">实验目的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%A6%81%E6%B1%82"><span class="nav-number">1.2.</span> <span class="nav-text">实验要求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%8E%9F%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">实验原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E5%8D%B7%E7%A7%AF"><span class="nav-number">2.1.</span> <span class="nav-text">线性卷积</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%86%E5%91%A8%E5%8D%B7%E7%A7%AF"><span class="nav-number">2.2.</span> <span class="nav-text">圆周卷积</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E8%80%85%E5%85%B3%E7%B3%BB"><span class="nav-number">2.3.</span> <span class="nav-text">二者关系</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E6%96%B9%E6%B3%95%E4%B8%8E%E5%86%85%E5%AE%B9"><span class="nav-number">3.</span> <span class="nav-text">实验方法与内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E6%80%9D%E8%B7%AF"><span class="nav-number">3.1.</span> <span class="nav-text">实验思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90"><span class="nav-number">3.2.</span> <span class="nav-text">需求分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E5%8D%B7%E7%A7%AF%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90"><span class="nav-number">3.2.1.</span> <span class="nav-text">线性卷积需求分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%86%E5%91%A8%E5%8D%B7%E7%A7%AF%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90"><span class="nav-number">3.2.2.</span> <span class="nav-text">圆周卷积需求分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E5%8F%8A%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">实验结果及分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E5%8D%B7%E7%A7%AF%E6%BC%94%E7%A4%BA"><span class="nav-number">4.1.</span> <span class="nav-text">线性卷积演示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%86%E5%91%A8%E5%8D%B7%E7%A7%AF%E6%97%B6%E5%9F%9F%E6%BC%94%E7%A4%BA"><span class="nav-number">4.2.</span> <span class="nav-text">圆周卷积时域演示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%86%E5%91%A8%E5%8D%B7%E7%A7%AF%E9%A2%91%E5%9F%9F%E6%BC%94%E7%A4%BA"><span class="nav-number">4.3.</span> <span class="nav-text">圆周卷积频域演示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E8%80%85%E5%85%B3%E7%B3%BB%E9%AA%8C%E8%AF%81"><span class="nav-number">4.4.</span> <span class="nav-text">两者关系验证</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁，而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">145k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:11</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

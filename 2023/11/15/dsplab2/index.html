@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="实验目的和要求综合应用数字信号处理的理论知识进行信号的频谱分析和滤波器设计，通过理论推导得到响应结论，利用MATLAB进行计算机仿真，加深对所学知识的理论界，融会贯通所学知识。 通过本次课程设计，掌握用MATLAB对语音信号进行分析和处理的能力，并进一步掌握MATLAB 设计数字滤波器的方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于MATLAB的语音信号去噪">
+<meta property="og:url" content="http://example.com/2023/11/15/dsplab2/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="实验目的和要求综合应用数字信号处理的理论知识进行信号的频谱分析和滤波器设计，通过理论推导得到响应结论，利用MATLAB进行计算机仿真，加深对所学知识的理论界，融会贯通所学知识。 通过本次课程设计，掌握用MATLAB对语音信号进行分析和处理的能力，并进一步掌握MATLAB 设计数字滤波器的方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-6.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-7.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-8.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-9.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-10.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-11.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-12.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-13.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-14.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-15.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-16.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-17.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-18.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-19.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-20.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-21.png?raw=true">
+<meta property="article:published_time" content="2023-11-15T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-06T07:41:48.656Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-6.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/11/15/dsplab2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>基于MATLAB的语音信号去噪 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/11/15/dsplab2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁，而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于MATLAB的语音信号去噪
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-11-15 14:00:00" itemprop="dateCreated datePublished" datetime="2023-11-15T14:00:00+08:00">2023-11-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-07-06 15:41:48" itemprop="dateModified" datetime="2024-07-06T15:41:48+08:00">2024-07-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Digital-Signal-Processing/" itemprop="url" rel="index"><span itemprop="name">Digital Signal Processing</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="实验目的和要求"><a href="#实验目的和要求" class="headerlink" title="实验目的和要求"></a>实验目的和要求</h1><p>综合应用数字信号处理的理论知识进行信号的频谱分析和滤波器设计，通过理论推导得到响应结论，利用MATLAB进行计算机仿真，加深对所学知识的理论界，融会贯通所学知识。</p>
+<p>通过本次课程设计，掌握用MATLAB对语音信号进行分析和处理的能力，并进一步掌握MATLAB 设计数字滤波器的方法。</p>
+<span id="more"></span>
+<p>基础设计要求：</p>
+<p>(1)录制或采集一段语音信号，画出原始语音信号的时域波形及频谱。</p>
+<p>(2)应用Matlab平台给语音信号叠加高斯白噪声；画出加噪信号的时域波形及频谱。</p>
+<p>(3)确定设计性能指标，设计IIR数字滤波器进行滤波，画出滤波器的频谱。<br>(4)使用设计好的滤波器对加噪信号进行滤波，得到去噪信号。画出去噪信号的时域及频谱图。回放滤波前后语音，对比滤波效果。</p>
+<p>提高设计要求：</p>
+<p>(1)在原始语音上叠加高频噪音或低频噪音，完成滤波器设计过程。</p>
+<p>(2)设计两种及以上滤波器对语音信号进行滤波，给出不同滤波器滤波前后的信噪比（SNR），分析得出滤波效果最好的滤波器。</p>
+<p>(3)使用GUI&#x2F;app design设计语音去噪系统界面。</p>
+<p>(4)查阅课本或文献使用其他滤波算法完成滤波。(谱减法、卡尔曼滤波等)</p>
+<h1 id="实验原理"><a href="#实验原理" class="headerlink" title="实验原理"></a>实验原理</h1><h2 id="语言去噪步骤"><a href="#语言去噪步骤" class="headerlink" title="语言去噪步骤"></a>语言去噪步骤</h2><p>基于MATLAB的语音信号去噪设计主要分为以下五个步骤：</p>
+<p>（1）语音采集：可在MATLAB平台上录入一段语音信号，也可直接导入收集好的语音信号；</p>
+<p>（2）语音分析：绘制原始语音信号时域及频谱图，分析原始语音信号频谱特征；</p>
+<p>（3）语音加噪：对原始语音信号叠加噪声，并绘制加噪信号时域及频谱图。常见噪声包括高斯白噪声、高频噪声、低频噪声等；</p>
+<p>（4）滤波器设计：结合原始语音信号频谱，针对不同的叠加噪声，确定滤波器设计性能指标，设计相应滤波器，并绘制滤波器的频谱图，判断是否符合设计要求；</p>
+<p>（5）去噪信号分析：利用设计的滤波器对加噪信号进行滤波，绘制去噪信号时域及频谱图，并播放去噪语音信号，与原始语音信号进行对比分析。</p>
+<h2 id="谱减法的理论基础"><a href="#谱减法的理论基础" class="headerlink" title="谱减法的理论基础"></a>谱减法的理论基础</h2><p>假设带噪语音中的噪声是加性的，带噪语音谱减去估计出的噪声谱便可以得到干净语音谱。<br>根据加性假设，干净语音、噪声和带噪语音的关系可以写成如下所示：<br>$$<br>y(n)&#x3D;x(n)+d(n)<br>$$</p>
+<p>其中, $y(n)$ 为采集到的带噪语音, $x(n)$ 为干净语音, $d(n)$ 为噪声。传换至频域:<br>$$<br>\begin{aligned}<br>&amp; Y(\omega)&#x3D;X(\omega)+D(\omega) \<br>&amp; Y(\omega)&#x3D;|Y(\omega)| e^{j \Phi_y(\omega)}<br>\end{aligned}<br>$$</p>
+<p>其中 $|Y(\omega)|$ 为幅度谱 $e^{j \Phi_y(\omega)}$ 为信号相位<br>则干净语音可以通过带噪语音减去噪声谱得到:<br>$$<br>\hat{X}(\omega)&#x3D;[|Y(\omega)|-\hat{D}(\omega)] e^{j \Phi_y(\omega)}<br>$$</p>
+<p>但在实践中, $\hat{X}(\omega)$ 很有可能是负数, 所以常会做一个半波整流:</p>
+<p>由于对负值进行半波整流, 导致帧频谱的随机频率上出现小的、独立的峰值, 变换到时域上面, 这些峰值听起来就像帧与帧之间频率随机变化的多颤音, 也就是通常所说的 “音乐噪声” (Musical Noise)</p>
+<h1 id="实验方法与内容"><a href="#实验方法与内容" class="headerlink" title="实验方法与内容"></a>实验方法与内容</h1><h2 id="基础设计"><a href="#基础设计" class="headerlink" title="基础设计"></a>基础设计</h2><p>我们选取了一段CCTV的音频，音频的读取通过audioread函数实现<br>由于我们选取的音频为双通道的，为了后续处理方便将其改为单通道</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">y</span>=y(:,<span class="number">1</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>通过plot函数即可得到它的时域图，通过fft即可得到它的频谱图，通过randn函数来生成白噪声</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">x</span>=randn(m,<span class="number">1</span>)<span class="comment">; %m为CCTV音频的长度</span></span><br></pre></td></tr></table></figure>
+
+<p>将其与原信号相加即可得到带噪信号，再对带噪信号用plot函数即可画出时域图，通过fft得到它的频谱图</p>
+<p>通过观察频谱图的信号和噪声分布，选择合适的性能指标，通过buttord函数得到相应的N和Wn</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">N,Wn</span>]=buttord(Wp,Ws,ap,<span class="keyword">as</span>);</span><br></pre></td></tr></table></figure>
+<p>通过butter函数得到传递函数的系数B和A</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[B,A]</span>=butter(N,Wn);</span><br></pre></td></tr></table></figure>
+<p>用filter函数得到经降噪后的音频</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">y2</span>=filter(B,A,y1)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>然后通过sound函数播放降噪前后的音频，比对得到滤波效果的好坏并调整性能指标</p>
+<h2 id="提高设计"><a href="#提高设计" class="headerlink" title="提高设计"></a>提高设计</h2><h3 id="非GUI设计"><a href="#非GUI设计" class="headerlink" title="非GUI设计"></a>非GUI设计</h3><p>高频或低频噪声的获取可通过对高斯白噪声通过一个高通或低通滤波器得到，由于我们选择的音频信息都集中在低频段，若添加低频噪声则用传统的滤波器很难消除，所以我们选择在原信号上添加高频噪声</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[N,<span class="built_in">wc</span>]=buttord(0.8,0.5,3,35);</span><br><span class="line">[B,A]=butter(N,<span class="built_in">wc</span>,<span class="string">&#x27;high&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>高斯白噪声通过这样一个高通滤波器即可变为高频信号，由于信号在低频，噪声在高频，故低通滤波器能够很好的满足我们的需求，而通过基础设计我们得到了一个巴特沃斯低通滤波器，则可以直接沿用该滤波器进行滤波</p>
+<p>我们还可以分别设计切比雪夫Ⅰ型滤波器，切比雪夫Ⅱ型滤波器，和椭圆滤波器来完成滤波</p>
+<p>切比雪夫Ⅰ型滤波器可通过cheb1ord函数和cheby1函数得到</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">N,Wn</span>]=cheb1ord(Wp,Ws,ap,<span class="keyword">as</span>);</span><br><span class="line">[<span class="meta">B,A</span>]=cheby1(N,ap,Wn);</span><br><span class="line">切比雪夫Ⅱ型滤波器可通过cheb2ord函数和cheby2函数得到</span><br><span class="line">[<span class="meta">N,Wn</span>]=cheb2ord(wp,ws,ap,<span class="keyword">as</span>);</span><br><span class="line">[<span class="meta">B,A</span>]=cheby2(N,Rs,Wn);</span><br></pre></td></tr></table></figure>
+<p>椭圆滤波器可通过ellipord函数和ellip函数得到</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[N,Wn]</span>=ellipord(wp,ws,Rp,Rs);</span><br><span class="line"><span class="string">[B,A]</span>=ellip(N,Rp,Rs,Wn);</span><br></pre></td></tr></table></figure>
+<p>为了比较滤波器的滤波效果，我们需要计算滤波前后的信噪比，而我们可以选取的带噪信号相同，有相同的信噪比，只需计算滤波后的信噪比大小就能分析滤波器的性能好坏</p>
+<p>使用滤波器进行滤波后的信噪比计算方法为：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SNR=<span class="number">20</span>*<span class="built_in">log10</span>(<span class="keyword">norm</span>(y_flitered-x_flitered)/<span class="keyword">norm</span>(x_flitered)) %y_flitered为滤波后的带噪信号,x_flitered为滤波后的噪声,<span class="keyword">norm</span>为<span class="number">2</span>范数</span><br></pre></td></tr></table></figure>
+<p>即滤波后的带噪信号减去滤波后的噪声即为经滤波后的纯净信号</p>
+<h3 id="GUI设计"><a href="#GUI设计" class="headerlink" title="GUI设计"></a>GUI设计</h3><p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-6.png?raw=true" alt="alt text"></p>
+<p>我们在界面中放入三个坐标轴，分别用于观察原信号，加噪信号去噪信号的时域和频域图。</p>
+<p>放入两个列表框，用于选择添加信号的类型和滤波器的类型或者滤波方法。</p>
+<p>第一个列表框的选项如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-7.png?raw=true" alt="alt text"></p>
+<p>第二个列表框选项如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-8.png?raw=true" alt="alt text"></p>
+<p>列表框的选择选项功能用switch语句实现</p>
+<p>一个可编辑文本框用于设置加噪信号的信噪比，输入即为SNR</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">SNR</span>=<span class="number">0</span><span class="comment">;       %信噪比大小</span></span><br><span class="line"><span class="attr">x</span>=x/norm(x,<span class="number">2</span>).*<span class="number">10</span>^(-SNR/<span class="number">20</span>)*norm(y)<span class="comment">; %x为噪声,y为原信号</span></span><br></pre></td></tr></table></figure>
+<p>四个可编辑文本框用于输入滤波器的性能指标</p>
+<p>选用传统滤波器滤波后会计算出相应的信噪比</p>
+<p>若选用谱减法进行滤波，由于该方法滤波后的带噪信号减去滤波后的噪声不为纯净信号，则无法通过该方法计算信噪比</p>
+<p>经计算得到的信噪比输出在可编辑文本框中</p>
+<p>有三个播放按钮用于播放原信号，加噪信号，降噪信号，通过比对分析滤波效果的好坏</p>
+<h1 id="实验原始纪录"><a href="#实验原始纪录" class="headerlink" title="实验原始纪录"></a>实验原始纪录</h1><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">[y,Fs]=audioread(<span class="string">&quot;C:\Users\kiana\Desktop\cctv.wav&quot;</span>);</span><br><span class="line">% <span class="attribute">y</span>=y(:,1);</span><br><span class="line"><span class="attribute">m</span>=length(y);</span><br><span class="line"><span class="attribute">x</span>=randn(m,1);</span><br><span class="line"><span class="attribute">SNR</span>=0;                 %信噪比大小</span><br><span class="line"><span class="attribute">x</span>=x/norm(x,2).*10^(-SNR/20)*norm(y);</span><br><span class="line"><span class="attribute">y1</span>=x+y;</span><br><span class="line">% sound(y,Fs);</span><br><span class="line">subplot(4,2,1);plot(y);</span><br><span class="line">xlabel(<span class="string">&#x27;时间&#x27;</span>);</span><br><span class="line">ylabel(<span class="string">&#x27;幅值&#x27;</span>);</span><br><span class="line">title(<span class="string">&#x27;原始语音信号&#x27;</span>);</span><br><span class="line">subplot(4,2,3);plot(y1)</span><br><span class="line">xlabel(<span class="string">&#x27;时间&#x27;</span>);</span><br><span class="line">ylabel(<span class="string">&#x27;幅值&#x27;</span>);</span><br><span class="line">title(<span class="string">&#x27;加噪语音信号&#x27;</span>);</span><br><span class="line">% sound(y1,Fs);</span><br><span class="line">% audiowrite(<span class="string">&#x27;C:\Users\kiana\Desktop\cctv_noise.wav&#x27;</span>,y1,Fs); </span><br><span class="line">Y = fft(y);  % 傅里叶变换</span><br><span class="line"><span class="attribute">Y1</span>=fft(y1);</span><br><span class="line">P = abs(Y);  % 双边频谱</span><br><span class="line"><span class="attribute">P1</span>=abs(Y1);</span><br><span class="line"><span class="attribute">n</span>=0:m-1;</span><br><span class="line"><span class="attribute">w</span>=2*n/m;</span><br><span class="line">subplot(4,2,2);plot(w,P);title(<span class="string">&#x27;原始语音频谱&#x27;</span>);</span><br><span class="line">subplot(4,2,4);plot(w,P1);</span><br><span class="line">xlabel(<span class="string">&#x27;频率\omega/\pi&#x27;</span>);</span><br><span class="line">ylabel(<span class="string">&#x27;幅度&#x27;</span>);</span><br><span class="line">title(<span class="string">&#x27;加噪语音频谱&#x27;</span>);</span><br><span class="line"><span class="attribute">fp</span>=0.15;fs=0.24;ap=3;as=35;</span><br><span class="line">[N,Wn]=buttord(fp,fs,ap,as);</span><br><span class="line">[B,A]=butter(N,Wn);</span><br><span class="line">% [N,Wn]=cheb1ord(fp,fs,ap,as); %使用其他滤波器即注释当前的滤波器和去相应滤波器的注释</span><br><span class="line">% [B,A]=cheby1(N,ap,Wn);</span><br><span class="line">% [N,Wn]=cheb2ord(fp,fs,ap,as);</span><br><span class="line">% [B,A]=cheby2(N,ap,Wn);</span><br><span class="line">[H,W]=freqz(B,A);</span><br><span class="line">% plot(abs(H));</span><br><span class="line">% [N,Wn]=ellipord(fp,fs,ap,as);</span><br><span class="line">% [B,A]=ellip(N,ap,as,Wn);</span><br><span class="line"><span class="attribute">y2</span>=filter(B,A,y1);</span><br><span class="line"><span class="attribute">x2</span>=filter(B,A,x);</span><br><span class="line"><span class="attribute">Ps</span>=sum((y2-x2).^2);</span><br><span class="line"><span class="attribute">Pu</span>=sum(x2.^2);</span><br><span class="line"><span class="attribute">SNR1</span>=10*log10(Ps/Pu); </span><br><span class="line">subplot( 4,2,5);plot(y2);xlabel(<span class="string">&#x27;时间&#x27;</span>);</span><br><span class="line">ylabel(<span class="string">&#x27;幅值&#x27;</span>);title(<span class="string">&quot;去噪语音信号&quot;</span>);</span><br><span class="line"><span class="attribute">Y2</span>=fft(y2);</span><br><span class="line"><span class="attribute">P2</span>=abs(Y2);</span><br><span class="line">subplot(4,2,6);plot(w,P2);xlabel(<span class="string">&#x27;频率\omega/\pi&#x27;</span>);</span><br><span class="line">ylabel(<span class="string">&#x27;幅度&#x27;</span>);title(<span class="string">&#x27;去噪语音频谱&#x27;</span>);</span><br><span class="line">subplot(4,2,7);plot(W/pi,20*log10(abs(H)));</span><br><span class="line">% axis([0,1,-440,0]);title(<span class="string">&quot;巴特沃斯低通滤波器&quot;</span>);</span><br><span class="line">xlabel(<span class="string">&quot;\omega/pi&quot;</span>);ylabel(<span class="string">&quot;增益(dB)&quot;</span>);</span><br><span class="line">% sound(y2,Fs);</span><br><span class="line">% audiowrite(<span class="string">&#x27;C:\Users\kiana\Desktop\cctv_denosied.wav&#x27;</span>,y2,Fs); </span><br></pre></td></tr></table></figure>
+<h1 id="实验结果及分析"><a href="#实验结果及分析" class="headerlink" title="实验结果及分析"></a>实验结果及分析</h1><h2 id="基础部分"><a href="#基础部分" class="headerlink" title="基础部分"></a>基础部分</h2><p>我们选取的音频的时域和频域图如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-9.png?raw=true" alt="alt text"></p>
+<p>可以看到它的信号主要集中在低频部分</p>
+<p>添加高斯白噪声得到信噪比为0的带噪信号，它的时域和频域图如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-10.png?raw=true" alt="alt text"></p>
+<p>发现原来各频率上均已有值，噪声的幅度均匀分布在各频率段，通过观察我们发现，在$0.15$之前的频率就包含了原信号频谱的绝大部分，而在$0.24$之后几乎没有值，所以我们可以设计相应的滤波器以保留低频段信息，滤去其他信息</p>
+<p>得到的滤波器响应曲线</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-11.png?raw=true" alt="alt text"></p>
+<p>经过滤后的信号的时域和频域图如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-12.png?raw=true" alt="alt text"></p>
+<p>通过先前的信噪比计算方法得到滤波后的信号信噪比约为$7.87$这是一个合理的值，由于加噪信号信噪比为 $0$，即噪声功率$Pu$和纯净信号功率$Ps$相等，我们通过计算可得它的值应该大于$10\times log10(Ps&#x2F;0.24Pu)&#x3D;6.19$,小于$10\times log10（Ps&#x2F;0.15Pu）&#x3D;8.24$</p>
+<h2 id="提高部分"><a href="#提高部分" class="headerlink" title="提高部分"></a>提高部分</h2><p>我们向原信号中加入高频噪声得到信噪比为0的加噪信号，它的时域和频域图如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-13.png?raw=true" alt="alt text"></p>
+<p>可以看到噪声都集中在0.6到1之间</p>
+<p>我们将其通过沿用之前的性能指标得到的巴特沃斯滤波器</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-14.png?raw=true" alt="alt text"></p>
+<p>它的信噪比为$76.5$</p>
+<p>我们再设计切比雪夫Ⅰ型滤波器，它的响应曲线和去噪效果如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-15.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-16.png?raw=true" alt="alt text"></p>
+<p>信噪比为$75.3$<br>切比雪夫Ⅱ型滤波器的响应曲线和滤波效果如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-17.png?raw=true" alt="alt text"></p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-18.png?raw=true" alt="alt text"></p>
+<p>它的信噪比为$42.5$<br>椭圆滤波器的响应曲线和滤波效果如下</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-19.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-20.png?raw=true" alt="alt text"></p>
+<p>它的信噪比为$33.1$<br>通过比对我们可以发现巴特沃斯滤波器的效果最好，切比雪夫Ⅰ型与其相似，而切比雪夫Ⅱ型和椭圆滤波器的效果与前两个相差较大</p>
+<p>这是由他们的响应曲线决定的，切比雪夫Ⅰ型在低频处有波纹使得它在保留低频信息上劣于巴特沃斯，而切比雪夫Ⅱ型和椭圆滤波器在高频出的衰减不如前两个滤波器剧烈，也就是噪声的消除不如前两个滤波器，而椭圆滤波器的信噪比不如切比雪夫Ⅱ型则是由于它对低频信号的衰减明显强于切比雪夫Ⅱ型</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/dsp-21.png?raw=true" alt="alt text"></p>
+<p>播放谱减法处理后的音频我们可以发现在最后有明显的多颤音，这一点在时域图上也能看出，在$6$至$8$处的幅值对比原音频时域图有明显的衰减，这是谱减法的一个弊端，它会产生音乐噪声，而这一现象在另一音频中体现的尤为明显</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/08/28/dsplab1/" rel="prev" title="基于MATLAB的卷积演示系统">
+      <i class="fa fa-chevron-left"></i> 基于MATLAB的卷积演示系统
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/11/24/oslab1/" rel="next" title="进程调度(上)">
+      进程调度(上) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E7%9A%84%E5%92%8C%E8%A6%81%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">实验目的和要求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%8E%9F%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">实验原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E8%A8%80%E5%8E%BB%E5%99%AA%E6%AD%A5%E9%AA%A4"><span class="nav-number">2.1.</span> <span class="nav-text">语言去噪步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B0%B1%E5%87%8F%E6%B3%95%E7%9A%84%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80"><span class="nav-number">2.2.</span> <span class="nav-text">谱减法的理论基础</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E6%96%B9%E6%B3%95%E4%B8%8E%E5%86%85%E5%AE%B9"><span class="nav-number">3.</span> <span class="nav-text">实验方法与内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.1.</span> <span class="nav-text">基础设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%90%E9%AB%98%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.2.</span> <span class="nav-text">提高设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%9EGUI%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.2.1.</span> <span class="nav-text">非GUI设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GUI%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.2.2.</span> <span class="nav-text">GUI设计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%8E%9F%E5%A7%8B%E7%BA%AA%E5%BD%95"><span class="nav-number">4.</span> <span class="nav-text">实验原始纪录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E5%8F%8A%E5%88%86%E6%9E%90"><span class="nav-number">5.</span> <span class="nav-text">实验结果及分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E9%83%A8%E5%88%86"><span class="nav-number">5.1.</span> <span class="nav-text">基础部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%90%E9%AB%98%E9%83%A8%E5%88%86"><span class="nav-number">5.2.</span> <span class="nav-text">提高部分</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁，而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">145k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:11</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

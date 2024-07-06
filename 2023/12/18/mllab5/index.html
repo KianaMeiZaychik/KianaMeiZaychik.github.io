@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="实验目的    熟悉和掌握k-means聚类算法    熟悉和掌握DBSCAN聚类算法  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    核心模型和算法需自主编程实现，不得直接调用Scikit-learn、PyTorch等成熟框架的第三方实现    代码可读性强：变量、函数、类等命名可读性强，包含必要的注释  实验原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="聚类实验">
+<meta property="og:url" content="http://example.com/2023/12/18/mllab5/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="实验目的    熟悉和掌握k-means聚类算法    熟悉和掌握DBSCAN聚类算法  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    核心模型和算法需自主编程实现，不得直接调用Scikit-learn、PyTorch等成熟框架的第三方实现    代码可读性强：变量、函数、类等命名可读性强，包含必要的注释  实验原理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-27.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-28.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-29.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-30.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-31.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-32.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-33.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-34.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-35.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-36.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-37.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-38.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-39.png?raw=true">
+<meta property="article:published_time" content="2023-12-18T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-06T11:11:10.077Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-27.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/12/18/mllab5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>聚类实验 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/12/18/mllab5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁，而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          聚类实验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-12-18 14:00:00" itemprop="dateCreated datePublished" datetime="2023-12-18T14:00:00+08:00">2023-12-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-07-06 19:11:10" itemprop="dateModified" datetime="2024-07-06T19:11:10+08:00">2024-07-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h1><ol>
+<li>   熟悉和掌握k-means聚类算法</li>
+<li>   熟悉和掌握DBSCAN聚类算法</li>
+</ol>
+<h1 id="实验要求"><a href="#实验要求" class="headerlink" title="实验要求"></a>实验要求</h1><ol>
+<li>   采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言</li>
+<li>   核心模型和算法需自主编程实现，不得直接调用Scikit-learn、PyTorch等成熟框架的第三方实现</li>
+<li>   代码可读性强：变量、函数、类等命名可读性强，包含必要的注释</li>
+</ol>
+<h1 id="实验原理"><a href="#实验原理" class="headerlink" title="实验原理"></a>实验原理<span id="more"></span></h1><p>K-means算法是最简单的一种聚类算法。算法的目的是使各个样本与所在类均值的误差平方和达到最小（这也是评价K-means算法最后聚类效果的评价标准）<br>K-means聚类算法的一般步骤：<br>1.	初始化。输入基因表达矩阵作为对象集X，输入指定聚类类数N，并在X中随机选取N个对象作为初始聚类中心。设定迭代中止条件，比如最大循环次数或者聚类中心收敛误差容限。<br>2.	进行迭代。根据相似度准则将数据对象分配到最接近的聚类中心，从而形成一类。初始化隶属度矩阵。<br>3.	更新聚类中心。然后以每一类的平均向量作为新的聚类中心，重新分配数据对象。<br>4.	反复执行第二步和第三步直至满足中止条件。</p>
+<p>举一个简单的例子来说明问题：</p>
+<p>设有一组数据集x1&#x3D;(2,1),x2&#x3D;(1,3),x3&#x3D;(6,7),x4&#x3D;(4,7)</p>
+<p>(1)选取聚类中心，该中心可以任意选取，也可以通过直方图进行选取，还可以通过取前2个值进行选取。我们选择两个聚类中心。</p>
+<p>(2)计算每一个样本值到聚类中心的距离；并划分新的聚类中心；<br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-27.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-28.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-29.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-30.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-31.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-32.png?raw=true" alt="alt text"></p>
+<p>评价标准：<br>$$<br>J(c, \mu)&#x3D;\sum_{i&#x3D;1}^m\left|x^{(i)}-\mu_{c^{(i)}}\right|^2<br>$$<br>假设有 $\mathrm{M}$ 个数据源， $\mathrm{C}$ 个聚类中心。 $\mu \mathrm{c}$ 为聚类中心。该公式的意思也就是将每个类中的数据与每个聚类中心做差的平方和, $\mathrm{J}$ 最小, 意味着分割的效果最好。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-33.png?raw=true" alt="alt text"></p>
+<h1 id="实验内容"><a href="#实验内容" class="headerlink" title="实验内容"></a>实验内容</h1><h2 id="K-means聚类算法"><a href="#K-means聚类算法" class="headerlink" title="K-means聚类算法"></a>K-means聚类算法</h2><p>采用数据集 “data&#x2F;clustering1.csv”进行k-means聚类算法实验。<br>数据集简介：本数据集来自UCI数据库Sales_Transactions_Dataset_Weekly数据，经过简单筛选后维度为666\times52，对应666种商品在52周的销量。</p>
+<ol>
+<li>将每一种商品看作一个样本, 每一周看作一个属性, 对其进行聚类。</li>
+<li>对数据进行 min-max 归一化至 $[0,1]$ 区间内:</li>
+<li>随机挑选 $\mathrm{k}$ 个初始聚类中心, 使用欧氏距离度量各样本与聚类中心的距离,划分聚类。</li>
+<li>更新聚类中心, 重新划分聚类。</li>
+<li>重复第 4 步, 直到各类包含的样本不再改变或达到最大迭代次数, 输出结果。</li>
+<li>对原样本数据计算均值和方差, 进行标准化, 使用 PCA 降维方法降至二维,打印散点图至二维平面中, 以不同的颜色区分不同类别的样本。</li>
+<li>更换随机聚类中心, 重复上述第 3-5 步并打印散点图。</li>
+<li>参数设置: k 分别取 2、3、5，最大迭代次数 maxiter 取 100</li>
+</ol>
+<p>代码输出：样本二维图像，共6幅放在一起，三行两列，分别对应3个不同的k值，每个k值对应两次不同的初始聚类中心。<br>##	DBSCAN聚类算法<br>采用数据集 “data&#x2F;clustering2.csv”进行DBSCAN聚类算法实验。</p>
+<p>数据集简介: 本数据来自 DIP 数据库, 为蛋白质相互作用网络数据, 网络 $G-$<br>$(E, V), \mathrm{E}$ 是网络中的节点的集合, 即蛋白质, $\mathrm{V}$ 是网络中的边的集合, 即蛋白质 -蛋白质相互作用。网络保存为邻接矩阵 $\mathrm{A}$ 的形式, 矩阵中元素 $A_{i j}$ 代表第 $\mathrm{i}$ 个蛋白质和第 $\mathrm{j}$ 个蛋白质是否存在相互作用, 若值为 1 , 则存在相互作用, 并有一条边连接这两个节点。矩阵中 $A_{i j}$ 和 $A_{j i}$ 对应同一条边。矩阵维度为 $1274 \times 1274$, 即共有 $1274$ 个蛋白质。存在相互作用的两个蛋白质之间的距离定为 $1$ , 无须计算。</p>
+<ol>
+<li>本实验中, 邻域半径 $\varepsilon$ 设为 1 , 即密度直达的两个节点就是存在相互作用的两个蛋白质, 也就是说邻接矩阵中值为 1 的元素所在的行和列所对应的两个节点是密度直达的。</li>
+<li>密度阈值 MinPts 设为 $10 、 15 、 20$ 。</li>
+<li>依据密度聚类流程, 首先根据 MinPts 构造核心对象子集。</li>
+<li>依次从中取出一个核心对象 (同时从子集中删去该节点), 将它的邻居加入待访问节点子集。依次从待访问节点子集中取出一个节点 $v$ (同时从子集中删去该节点), 若它是核心对象, 将它的邻居也放入待访问节点子集。重复这一过程, 直到待访问节点子集为空集, 此时所有访问过的结点构成一个聚类。</li>
+<li>重复第 5 步, 直到核心对象子集为空集。</li>
+<li>计算各个聚类的聚类系数：<br>$$coef&#x3D;\frac{n_{edge}}{2\times n_{node}\times\left(n_{node-1}\right)}$$</li>
+<li>   保存所有聚类的聚类系数。</li>
+</ol>
+<p>代码输出:不同密度阈值MinPts取值时对应的聚类数量和相应各个聚类的聚类系数</p>
+<h1 id="实验代码和结果"><a href="#实验代码和结果" class="headerlink" title="实验代码和结果"></a>实验代码和结果</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> matplotlib <span class="keyword">import</span> pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">KMeans</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">distEclud</span>(<span class="params">self, vecA, vecB</span>):</span><br><span class="line">        <span class="keyword">return</span> np.linalg.norm(vecA - vecB)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">initCentroids</span>(<span class="params">self, dataSet, k</span>):</span><br><span class="line">        numSamples, dim = dataSet.shape</span><br><span class="line">        centroids = np.zeros((k, dim))</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(k):</span><br><span class="line">            index = <span class="built_in">int</span>(np.random.uniform(<span class="number">0</span>, numSamples))</span><br><span class="line">            centroids[i, :] = dataSet[index, :]</span><br><span class="line">        <span class="keyword">return</span> centroids</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">kmeans</span>(<span class="params">self, dataSet, k</span>):</span><br><span class="line">        numSamples = dataSet.shape[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">        clusterAssment = np.mat(np.zeros((numSamples, <span class="number">2</span>)))</span><br><span class="line">        clusterChanged = <span class="literal">True</span></span><br><span class="line"></span><br><span class="line">        centroids = self.initCentroids(dataSet, k)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> clusterChanged:</span><br><span class="line">            clusterChanged = <span class="literal">False</span></span><br><span class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(numSamples):</span><br><span class="line">                minDist = <span class="number">100000.0</span></span><br><span class="line">                minIndex = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">                <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(k):</span><br><span class="line">                    distance = self.distEclud(centroids[j, :], dataSet[i, :])</span><br><span class="line">                    <span class="keyword">if</span> distance &lt; minDist:</span><br><span class="line">                        minDist = distance</span><br><span class="line">                        minIndex = j</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> clusterAssment[i, <span class="number">0</span>] != minIndex:</span><br><span class="line">                    clusterChanged = <span class="literal">True</span></span><br><span class="line">                    clusterAssment[i, :] = minIndex, minDist ** <span class="number">2</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(k):</span><br><span class="line">                pointsInCluster = dataSet[np.nonzero(clusterAssment[:, <span class="number">0</span>].A == j)[<span class="number">0</span>]]</span><br><span class="line">                centroids[j, :] = np.mean(pointsInCluster, axis=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> centroids, clusterAssment</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pca</span>(<span class="params">data, k=<span class="number">2</span></span>):</span><br><span class="line">    mean_vals = np.mean(data, axis=<span class="number">0</span>)</span><br><span class="line">    mean_removed = data - mean_vals</span><br><span class="line">    cov_mat = np.cov(mean_removed, rowvar=<span class="literal">False</span>)</span><br><span class="line">    eig_vals, eig_vecs = np.linalg.eig(np.mat(cov_mat))</span><br><span class="line">    eig_val_index = np.argsort(eig_vals)[::-<span class="number">1</span>]</span><br><span class="line">    eig_val_index = eig_val_index[:k]</span><br><span class="line">    reduced_data = mean_removed * eig_vecs[:, eig_val_index]</span><br><span class="line">    <span class="keyword">return</span> reduced_data</span><br><span class="line"></span><br><span class="line">data = pd.read_csv(<span class="string">r&#x27;E:\Google\data\clustering1.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">data1=data.values</span><br><span class="line">Max=data1.<span class="built_in">max</span>()</span><br><span class="line">Min=data1.<span class="built_in">min</span>()</span><br><span class="line">data1=(data1-Min)/(Max-Min)</span><br><span class="line">kmeans_instance = KMeans()</span><br><span class="line">centroids, cluster_assignment = kmeans_instance.kmeans(data1, k=<span class="number">5</span>)</span><br><span class="line">data=data.values</span><br><span class="line">Mean=data.mean()</span><br><span class="line">Std=data.std()</span><br><span class="line">data=(data-Mean)/Std</span><br><span class="line">rd=pca(data)</span><br><span class="line">rd=np.column_stack((rd,cluster_assignment[:, <span class="number">0</span>]))</span><br><span class="line">color=[<span class="string">&#x27;r&#x27;</span>,<span class="string">&#x27;g&#x27;</span>,<span class="string">&#x27;b&#x27;</span>,<span class="string">&#x27;c&#x27;</span>,<span class="string">&#x27;m&#x27;</span>,<span class="string">&#x27;y&#x27;</span>]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(rd)):</span><br><span class="line">    plt.scatter(rd[i,<span class="number">0</span>],rd[i,<span class="number">1</span>],color=color[<span class="built_in">int</span>(rd[i,<span class="number">2</span>])])</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>k&#x3D;2</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-34.png?raw=true" alt="alt text"></p>
+<p>k&#x3D;3</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-35.png?raw=true" alt="alt text"></p>
+<p>k&#x3D;5</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-36.png?raw=true" alt="alt text"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">DBSCAN</span>(<span class="params">Matrix, eps, min_pts</span>):</span><br><span class="line">    Cluster = np.full(Matrix.shape[<span class="number">0</span>], -<span class="number">1</span>, dtype=<span class="built_in">int</span>)</span><br><span class="line">    cluster_id = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(Matrix.shape[<span class="number">0</span>]):</span><br><span class="line">        <span class="keyword">if</span> Cluster[i] != -<span class="number">1</span>:</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">        neighbors = Neighbors(Matrix, i, eps)</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(neighbors) &lt; min_pts:</span><br><span class="line">            Cluster[i] = <span class="number">0</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            Expand(Matrix, Cluster, i, neighbors, cluster_id, eps, min_pts)</span><br><span class="line">            cluster_id += <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> Cluster</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Neighbors</span>(<span class="params">Matrix, center, eps</span>):</span><br><span class="line">    <span class="keyword">return</span> np.where(Matrix[center] == <span class="number">1</span>)[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Expand</span>(<span class="params">Matrix, Cluster, center, neighbors, cluster_id, eps, min_pts</span>):</span><br><span class="line">    Cluster[center] = cluster_id</span><br><span class="line"></span><br><span class="line">    i = <span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> i &lt; <span class="built_in">len</span>(neighbors):</span><br><span class="line">        n = neighbors[i]</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> Cluster[n] == -<span class="number">1</span>:</span><br><span class="line">            Cluster[n] = cluster_id</span><br><span class="line">            new_neighbors = Neighbors(Matrix, n, eps)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">len</span>(new_neighbors) &gt;= min_pts:</span><br><span class="line">                neighbors = np.concatenate((neighbors, new_neighbors))</span><br><span class="line"></span><br><span class="line">        i += <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Coefficient</span>(<span class="params">Matrix, Cluster, cluster_id</span>):</span><br><span class="line">    cluster_nodes = np.where(Cluster == cluster_id)[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(cluster_nodes) &lt; <span class="number">2</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0.0</span></span><br><span class="line"></span><br><span class="line">    internal_edges = np.<span class="built_in">sum</span>(Matrix[np.ix_(cluster_nodes, cluster_nodes)])</span><br><span class="line"></span><br><span class="line">    cluster_coefficient = <span class="number">2.0</span> * internal_edges / (<span class="built_in">len</span>(cluster_nodes) * (<span class="built_in">len</span>(cluster_nodes) - <span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> cluster_coefficient</span><br><span class="line">A = pd.read_csv(<span class="string">r&#x27;E:\Google\data\clustering2.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">A=A.to_numpy()</span><br><span class="line">min_pts_values = [<span class="number">10</span>, <span class="number">15</span>, <span class="number">20</span>]</span><br><span class="line"><span class="keyword">for</span> min_pts <span class="keyword">in</span> min_pts_values:</span><br><span class="line">    Cluster = DBSCAN(A, eps=<span class="number">1</span>, min_pts=min_pts)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;MinPts=<span class="subst">&#123;min_pts&#125;</span>\n&#x27;</span>)</span><br><span class="line">    unique_Cluster= np.unique(Cluster)</span><br><span class="line">    <span class="keyword">for</span> cluster <span class="keyword">in</span> unique_Cluster:</span><br><span class="line">        cluster_members = np.where(Cluster == cluster)[<span class="number">0</span>]</span><br><span class="line">        coefficient = Coefficient(A, Cluster, cluster)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&#x27;Cluster <span class="subst">&#123;cluster&#125;</span>: <span class="subst">&#123;coefficient&#125;</span>\n&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-37.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-38.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-39.png?raw=true" alt="alt text"></p>
+<h1 id="小结或讨论"><a href="#小结或讨论" class="headerlink" title="小结或讨论"></a>小结或讨论</h1><p>k均值简单并且可以用于各种数据类型。它相当有效，尽管常常多次运行。k均值的某些变种（包括二分K均值）甚至更有效，并且不太受初始化问题的影响。然而，k均值并不适合所有的数据类型。它不能出来非球形簇、不同尺寸和不同密度的簇。最后，k均值仅限于具有中心（质心）概念的数据。</p>
+<p>DBSCAN(Density-Based Spatial Clustering of Applications with Noise)是一个比较有代表性的基于密度的聚类算法。与划分和层次聚类方法不同，它将簇定义为密度相连的点的最大集合，能够把具有足够高密度的区域划分为簇，并可在噪声的空间数据库中发现任意形状的聚类（笔者认为是因为他不是基于距离的，基于距离的发现的是球状簇）。</p>
+<p>该算法利用基于密度的聚类的概念，即要求聚类空间中的一定区域内所包含对象（点或其他空间对象）的数目不小于某一给定阈值。DBSCAN算法的显著优点是聚类速度快且能够有效处理噪声点和发现任意形状的空间聚类。但是由于它直接对整个数据库进行操作且进行聚类时使用了一个全局性的表征密度的参数，因此也具有两个比较明显的弱点：</p>
+<p>（1）当数据量增大时，要求较大的内存支持I&#x2F;O消耗也很大；</p>
+<p>（2）当空间聚类的密度不均匀、聚类间距差相差很大时，聚类质量较差（有些簇内距离较小，有些簇内距离很大，但是Eps是确定的，所以，大的点可能被误判断为离群点或者边界点，如果Eps太大，那么小距离的簇内，可能会包含一些离群点或者边界点，KNN的k也存在同样的问题）。</p>
+<p>（1）与K-MEANS比较起来，不需要输入要划分的聚类个数；</p>
+<p>（2）聚类簇的形状没有偏倚；</p>
+<p>（3）可以在需要时输入过滤噪声的参数；</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/14/oslab4/" rel="prev" title="虚拟存储">
+      <i class="fa fa-chevron-left"></i> 虚拟存储
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/12/22/oslab5/" rel="next" title="磁盘调度">
+      磁盘调度 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">实验目的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%A6%81%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">实验要求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">实验原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%86%85%E5%AE%B9"><span class="nav-number">4.</span> <span class="nav-text">实验内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#K-means%E8%81%9A%E7%B1%BB%E7%AE%97%E6%B3%95"><span class="nav-number">4.1.</span> <span class="nav-text">K-means聚类算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E4%BB%A3%E7%A0%81%E5%92%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">5.</span> <span class="nav-text">实验代码和结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%E6%88%96%E8%AE%A8%E8%AE%BA"><span class="nav-number">6.</span> <span class="nav-text">小结或讨论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁，而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">183k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:46</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

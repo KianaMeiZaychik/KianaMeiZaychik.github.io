@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="实验目的    熟悉和掌握机器学习的完整流程    熟悉和掌握神经网络的构建  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    代码可读性强：变量、函数、类等命名可读性强，包含必要的注释  实验原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="神经网络分类任务综合实验">
+<meta property="og:url" content="http://example.com/2023/12/25/mllab6/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="实验目的    熟悉和掌握机器学习的完整流程    熟悉和掌握神经网络的构建  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    代码可读性强：变量、函数、类等命名可读性强，包含必要的注释  实验原理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-40.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-41.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-42.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-43.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-44.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-45.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-46.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-47.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-48.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-49.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-50.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-51.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-52.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-53.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-54.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-55.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-56.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-57.png?raw=true">
+<meta property="article:published_time" content="2023-12-25T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-06T11:09:38.548Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-40.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/12/25/mllab6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>神经网络分类任务综合实验 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/12/25/mllab6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁，而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          神经网络分类任务综合实验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-12-25 14:00:00" itemprop="dateCreated datePublished" datetime="2023-12-25T14:00:00+08:00">2023-12-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-07-06 19:09:38" itemprop="dateModified" datetime="2024-07-06T19:09:38+08:00">2024-07-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h1><ol>
+<li>   熟悉和掌握机器学习的完整流程</li>
+<li>   熟悉和掌握神经网络的构建</li>
+</ol>
+<h1 id="实验要求"><a href="#实验要求" class="headerlink" title="实验要求"></a>实验要求</h1><ol>
+<li>   采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言</li>
+<li>   代码可读性强：变量、函数、类等命名可读性强，包含必要的注释</li>
+</ol>
+<h1 id="实验原理"><a href="#实验原理" class="headerlink" title="实验原理"></a>实验原理<span id="more"></span></h1><p>人工神经网络（ANN），简称神经网络，是一种模仿生物神经网络的结构和功能的数学模型或计算模型。神经网络由大量的人工神经元联结进行计算。大多数情况下人工神经网络能在外界信息的基础上改变内部结构，是一种自适应系统。现代神经网络是一种非线性统计性数据建模工具，常用来对输入和输出间复杂的关系进行建模，或用来探索数据的模式。<br>人工神经网络从以下四个方面去模拟人的智能行为:</p>
+<ul>
+<li>物理结构：人工神经元将模拟生物神经元的功能</li>
+<li>计算模拟：人脑的神经元有局部计算和存储的功能，通过连接构成一个系统。人工神经网络中也有大量有局部处理能力的神经元，也能够将信息进行大规模并行处理</li>
+<li>存储与操作：人脑和人工神经网络都是通过神经元的连接强度来实现记忆存储功能，同时为概括、类比、推广提供有力的支持</li>
+<li>训练：同人脑一样，人工神经网络将根据自己的结构特性，使用不同的训练、学习过程，自动从实践中获得相关知识</li>
+</ul>
+<p>神经网络是一种运算模型，由大量的节点（或称“神经元”，或“单元”）和之间相互联接构成。每个节点代表一种特定的输出函数，称为激励函数。每两个节点间的连接都代表一个对于通过该连接信号的加权值，称之为权重，这相当于人工神经网络的记忆。网络的输出则依网络的连接方式，权重值和激励函数的不同而不同。而网络自身通常都是对自然界某种算法或者函数的逼近，也可能是对一种逻辑策略的表达。</p>
+<h2 id="感知器"><a href="#感知器" class="headerlink" title="感知器"></a>感知器</h2><p>历史上，科学家一直希望模拟人的大脑，造出可以思考的机器。人为什么能够思考？科学家发现，原因在于人体的神经网络。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-40.png?raw=true" alt="alt text"></p>
+<p>既然思考的基础是神经元，如果能够”人造神经元”（artificial neuron），就能组成人工神经网络，模拟思考。上个世纪六十年代，提出了最早的”人造神经元”模型，叫做”感知器”（perceptron），直到今天还在用。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-41.png?raw=true" alt="alt text"></p>
+<p>上图的圆圈就代表一个感知器。它接受多个输入（x1，x2，x3…），产生一个输出（output），好比神经末梢感受各种外部环境的变化，最后产生电信号。</p>
+<p>为了简化模型，我们约定每种输入只有两种可能：1 或 0。如果所有输入都是1，表示各种条件都成立，输出就是1；如果所有输入都是0，表示条件都不成立，输出就是0</p>
+<h2 id="决策模型"><a href="#决策模型" class="headerlink" title="决策模型"></a>决策模型</h2><p>单个的感知器构成了一个简单的决策模型，已经可以拿来用了。真实世界中，实际的决策模型则要复杂得多，是由多个感知器组成的多层网络。</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-42.png?raw=true" alt="alt text"></p>
+<p>上图中，底层感知器接收外部输入，做出判断以后，再发出信号，作为上层感知器的输入，直至得到最后的结果。（注意：感知器的输出依然只有一个，但是可以发送给多个目标。）</p>
+<p>一个神经网络的搭建，需要满足三个条件。</p>
+<ul>
+<li>输入和输出</li>
+<li>权重（W）和阈值（b）</li>
+<li>多层感知机的结构</li>
+</ul>
+<p>神经网络的运作过程如下：</p>
+<p>确定输入和输出<br>1.	找到一种或多种算法，可以从输入得到输出<br>2.	找到一组已知答案的数据集，用来训练模型，估算W和b<br>3.	一旦新的数据产生，输入模型，就可以得到结果，同时对W和b进行校正</p>
+<p>可以看到，整个过程需要海量计算。所以，神经网络直到最近这几年才有实用价值，而且一般的 CPU 还不行，要使用专门为机器学习定制的 GPU 来计算。</p>
+<h1 id="实验内容"><a href="#实验内容" class="headerlink" title="实验内容"></a>实验内容</h1><h2 id="数据简介"><a href="#数据简介" class="headerlink" title="数据简介"></a>数据简介</h2><p>采用数据集 “data&#x2F;positive.csv”和“data&#x2F;negative.csv”进行本次实验。</p>
+<h2 id="原始数据可视化"><a href="#原始数据可视化" class="headerlink" title="原始数据可视化"></a>原始数据可视化</h2><p>调用可视化工具，将原始数据可视化输出至二维平面内，以颜色区分不同类别。（python可使用UMAP，conda install umap-learn；matlab可使用t-sne函数）。</p>
+<h2 id="模型设计"><a href="#模型设计" class="headerlink" title="模型设计"></a>模型设计</h2><ol>
+<li>   本实验为二分类问题，正负样本各200个。</li>
+<li>   使用BP神经网络进行二分类（Python可使用Pytorch，MATLAB可使用神经网络工具箱newff函数。</li>
+<li>   设计包含3个隐藏层的BP神经网络，输入层维度为样本维度；隐藏层维度分别是128，32，2，隐藏层使用relu激活函数；输出层维度1，使用sigmoid激活函数。</li>
+</ol>
+<h2 id="模型训练与性能评估"><a href="#模型训练与性能评估" class="headerlink" title="模型训练与性能评估"></a>模型训练与性能评估</h2><ol>
+<li>   使用五折交叉验证（5-fold cross-validation）评估神经网络在该数据上的性能。</li>
+<li>   五折交叉验证：将正负样本各分为数量相等的5份：1-40，41-80，81-120，121-160，161-200，并把1份正样本与1份负样本合并构成1个子集，则原数据分成了5个子集，且子集中正负样本比例1：1保持不变。对模型进行5次训练测试：<ul>
+<li>第i次时，选择第i份子集作为测试集，其余4份数据子集作为训练集。使用训练集训练数据，并使用测试集验证&#x2F;测试性能，计算测试集的AUROC值。</li>
+<li>模型倒数第2层维度为2，导出测试集数据在这一层上的数值，输出成二维散点图，包含两个子图：子图1的标签为测试样本的预测标签（取决于模型输出，将输出大于0.5的样本预测为正样本，否则预测为负样本），以不同颜色区分不同的预测结果；子图2的标签为测试样本的真实标签，以不同颜色区分不同的真实结果。</li>
+<li>完成5次，使得每一个子集都作为测试集1次，作为训练集4次。计算整体的AUROC。</li>
+</ul>
+</li>
+<li>   打断正负样本排列，重新划分训练集与测试集，重新训练模型，查看性能变化。</li>
+</ol>
+<h2 id="特征选择和特征提取"><a href="#特征选择和特征提取" class="headerlink" title="特征选择和特征提取"></a>特征选择和特征提取</h2><ol>
+<li>   特征选择：针对原始数据，计算每个特征的方差，选取两个方差最大的特征。将正负样本点输出为二维散点图，以颜色区分。</li>
+<li>   特征提取：针对原始数据，调用PCA降维函数将数据降到二维，将正负样本点输出为二维散点图，以颜色区分。</li>
+</ol>
+<p>代码输出：</p>
+<ul>
+<li>原始数据的散点图；</li>
+<li>测试集的散点图；</li>
+<li>经过特征选择后的散点图；</li>
+<li>经过PCA降维后的散点图。</li>
+</ul>
+<h1 id="实验代码和结果"><a href="#实验代码和结果" class="headerlink" title="实验代码和结果"></a>实验代码和结果</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">po = pd.read_csv(<span class="string">r&#x27;E:\firefox download\positive.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">ne=pd.read_csv(<span class="string">r&#x27;E:\firefox download\negative.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">poe = umap.UMAP(n_components=<span class="number">2</span>).fit_transform(po)</span><br><span class="line">nee= umap.UMAP(n_components=<span class="number">2</span>).fit_transform(ne)</span><br><span class="line">plt.scatter(poe[:, <span class="number">0</span>], poe[:, <span class="number">1</span>],label=<span class="string">&quot;positive&quot;</span>)</span><br><span class="line">plt.scatter(nee[:, <span class="number">0</span>], nee[:, <span class="number">1</span>],label=<span class="string">&quot;negative&quot;</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-43.png?raw=true" alt="alt text"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch.optim <span class="keyword">as</span> optim</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> roc_auc_score</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> StratifiedKFold</span><br><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> StandardScaler</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义神经网络模型</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">NeuralNetwork</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, input_dim, hidden_dims</span>):</span><br><span class="line">        <span class="built_in">super</span>(NeuralNetwork, self).__init__()</span><br><span class="line">        self.input_layer = nn.Linear(input_dim, hidden_dims[<span class="number">0</span>])</span><br><span class="line">        self.hidden_layers = nn.ModuleList([nn.Linear(hidden_dims[i], hidden_dims[i+<span class="number">1</span>]) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(hidden_dims)-<span class="number">1</span>)])</span><br><span class="line">        self.output_layer = nn.Linear(hidden_dims[-<span class="number">1</span>], <span class="number">1</span>)</span><br><span class="line">        self.relu = nn.ReLU()</span><br><span class="line">        self.sigmoid = nn.Sigmoid()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        x = self.relu(self.input_layer(x))</span><br><span class="line">        <span class="keyword">for</span> layer <span class="keyword">in</span> self.hidden_layers:</span><br><span class="line">            x = self.relu(layer(x))</span><br><span class="line">        x = self.sigmoid(self.output_layer(x))</span><br><span class="line">        <span class="keyword">return</span> x</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取数据</span></span><br><span class="line">positive_data = pd.read_csv(<span class="string">r&#x27;E:\firefox download\positive.csv&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">negative_data = pd.read_csv(<span class="string">r&#x27;E:\firefox download\negative.csv&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并数据</span></span><br><span class="line">data = pd.concat([positive_data, negative_data], ignore_index=<span class="literal">True</span>,axis=<span class="number">1</span>).T.values</span><br><span class="line">label_train = np.concatenate([np.ones(<span class="number">200</span>), np.zeros(<span class="number">200</span>)])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 存储每次的AUC值</span></span><br><span class="line">auc_values = []</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化模型</span></span><br><span class="line">input_dim = data.shape[<span class="number">1</span>]</span><br><span class="line">hidden_dims = [<span class="number">128</span>, <span class="number">32</span>, <span class="number">2</span>]</span><br><span class="line">model = NeuralNetwork(input_dim, hidden_dims)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义损失函数和优化器</span></span><br><span class="line">criterion = nn.BCELoss()</span><br><span class="line">optimizer = optim.Adam(model.parameters(), lr=<span class="number">0.001</span>)</span><br><span class="line">skf=StratifiedKFold(n_splits=<span class="number">5</span>,shuffle=<span class="literal">True</span>)</span><br><span class="line"><span class="comment"># 进行5次测试</span></span><br><span class="line"><span class="keyword">for</span> fold,(train_indices,test_indices) <span class="keyword">in</span> <span class="built_in">enumerate</span>(skf.split(data,label_train)):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Fold <span class="subst">&#123;fold + <span class="number">1</span>&#125;</span>:&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    X_train, X_test = data[train_indices], data[test_indices]</span><br><span class="line">    y_train, y_test = label_train[train_indices], label_train[test_indices]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Check if there are both positive and negative samples in the test set</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">set</span>(y_test) == &#123;<span class="number">0</span>&#125; <span class="keyword">or</span> <span class="built_in">set</span>(y_test) == &#123;<span class="number">1</span>&#125;:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Warning: Test set contains only one class. Skipping evaluation for this fold.&quot;</span>)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 数据标准化</span></span><br><span class="line">    scaler = StandardScaler()</span><br><span class="line">    X_train = scaler.fit_transform(X_train)</span><br><span class="line">    X_test = scaler.transform(X_test)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 转换为PyTorch的Tensor</span></span><br><span class="line">    X_train_tensor = torch.tensor(X_train, dtype=torch.float32)</span><br><span class="line">    y_train_tensor = torch.tensor(y_train, dtype=torch.float32).view(-<span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    X_test_tensor = torch.tensor(X_test, dtype=torch.float32)</span><br><span class="line">    y_test_tensor = torch.tensor(y_test, dtype=torch.float32).view(-<span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 训练模型</span></span><br><span class="line">    num_epochs = <span class="number">1000</span></span><br><span class="line">    <span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(num_epochs):</span><br><span class="line">        model.train()</span><br><span class="line">        optimizer.zero_grad()</span><br><span class="line">        outputs = model(X_train_tensor)</span><br><span class="line">        loss = criterion(outputs, y_train_tensor)</span><br><span class="line">        loss.backward()</span><br><span class="line">        optimizer.step()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 在测试集上评估模型</span></span><br><span class="line">    model.<span class="built_in">eval</span>()</span><br><span class="line">    <span class="keyword">with</span> torch.no_grad():</span><br><span class="line">        test_outputs = model(X_test_tensor)</span><br><span class="line">        predicted_labels = (test_outputs &gt;= <span class="number">0.5</span>).<span class="built_in">float</span>()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Check if there are both positive and negative predictions</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">set</span>(predicted_labels.numpy().flatten()) == &#123;<span class="number">0</span>&#125; <span class="keyword">or</span> <span class="built_in">set</span>(predicted_labels.numpy().flatten()) == &#123;<span class="number">1</span>&#125;:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;Warning: Predictions contain only one class. Skipping evaluation for this fold.&quot;</span>)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 计算AUC值</span></span><br><span class="line">        auc = roc_auc_score(y_test, predicted_labels.numpy())</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&#x27;AUC on test set: <span class="subst">&#123;auc:<span class="number">.4</span>f&#125;</span>&#x27;</span>)</span><br><span class="line">        auc_values.append(auc)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 绘制散点图</span></span><br><span class="line">        plt.figure(figsize=(<span class="number">8</span>, <span class="number">6</span>))</span><br><span class="line">        plt.subplot(<span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">        plt.scatter(<span class="built_in">range</span>(<span class="built_in">len</span>(predicted_labels)), predicted_labels.numpy(), label=<span class="string">f&#x27;Fold <span class="subst">&#123;fold + <span class="number">1</span>&#125;</span>&#x27;</span>)</span><br><span class="line">        plt.title(<span class="string">&#x27;Predicted Labels&#x27;</span>)</span><br><span class="line"></span><br><span class="line">        plt.subplot(<span class="number">2</span>, <span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">        plt.scatter(<span class="built_in">range</span>(<span class="built_in">len</span>(y_test)), y_test, label=<span class="string">f&#x27;Fold <span class="subst">&#123;fold + <span class="number">1</span>&#125;</span>&#x27;</span>)</span><br><span class="line">        plt.title(<span class="string">&#x27;True Labels&#x27;</span>)</span><br><span class="line">        plt.show()</span><br><span class="line"></span><br><span class="line">plt.tight_layout()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算整体的平均AUC值</span></span><br><span class="line"></span><br><span class="line">mean_auc = <span class="built_in">sum</span>(auc_values) / <span class="built_in">len</span>(auc_values)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;Mean AUC across folds: <span class="subst">&#123;mean_auc:<span class="number">.4</span>f&#125;</span>&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-44.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-45.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-46.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-47.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-48.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-49.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-50.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-51.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-52.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-53.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-54.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-55.png?raw=true" alt="alt text"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> matplotlib <span class="keyword">import</span> pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">X = pd.read_csv(<span class="string">r&#x27;E:\firefox download\positive.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">Y=pd.read_csv(<span class="string">r&#x27;E:\firefox download\negative.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">X=X.values</span><br><span class="line">Y=Y.values</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算每个特征的方差</span></span><br><span class="line">X_variances = np.var(X, axis=<span class="number">0</span>)</span><br><span class="line">Y_variances = np.var(Y, axis=<span class="number">0</span>)</span><br><span class="line"><span class="comment"># 选择两个方差最大的特征</span></span><br><span class="line">X_features = X[:, np.argsort(X_variances)[-<span class="number">2</span>:]]</span><br><span class="line">Y_features = Y[:, np.argsort(Y_variances)[-<span class="number">2</span>:]]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出二维散点图</span></span><br><span class="line">plt.scatter(X_features[:,<span class="number">0</span>], X_features[:,<span class="number">1</span>], color=<span class="string">&#x27;blue&#x27;</span>, label=<span class="string">&#x27;Positive Samples&#x27;</span>)</span><br><span class="line">plt.scatter(Y_features[:,<span class="number">0</span>], Y_features[:,<span class="number">1</span>], color=<span class="string">&#x27;red&#x27;</span>, label=<span class="string">&#x27;Negative Samples&#x27;</span>)</span><br><span class="line">plt.xlabel(<span class="string">&#x27;Feature 1&#x27;</span>)</span><br><span class="line">plt.ylabel(<span class="string">&#x27;Feature 2&#x27;</span>)</span><br><span class="line">plt.title(<span class="string">&#x27;Feature Selection&#x27;</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-56.png?raw=true" alt="alt text"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> matplotlib <span class="keyword">import</span> pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">X = pd.read_csv(<span class="string">r&#x27;E:\firefox download\positive.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">Y=pd.read_csv(<span class="string">r&#x27;E:\firefox download\negative.csv&#x27;</span>,sep=<span class="string">&#x27;,&#x27;</span>,header=<span class="literal">None</span>)</span><br><span class="line">X=X.values</span><br><span class="line">Y=Y.values</span><br><span class="line"></span><br><span class="line">cov_matrix = np.cov(X, rowvar=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算特征值和特征向量</span></span><br><span class="line">eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 选择前两个特征向量对应的特征值最大的两个特征</span></span><br><span class="line">X_features = np.dot(X, eigenvectors[:, -<span class="number">2</span>:])</span><br><span class="line">Y_features = np.dot(Y, eigenvectors[:, -<span class="number">2</span>:])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出二维散点图</span></span><br><span class="line">plt.scatter(X_features[:,<span class="number">0</span>], X_features[:,<span class="number">1</span>], color=<span class="string">&#x27;blue&#x27;</span>, label=<span class="string">&#x27;Positive Samples&#x27;</span>)</span><br><span class="line">plt.scatter(Y_features[:,<span class="number">0</span>], Y_features[:,<span class="number">1</span>], color=<span class="string">&#x27;red&#x27;</span>, label=<span class="string">&#x27;Negative Samples&#x27;</span>)</span><br><span class="line">plt.xlabel(<span class="string">&#x27;Principal Component 1&#x27;</span>)</span><br><span class="line">plt.ylabel(<span class="string">&#x27;Principal Component 2&#x27;</span>)</span><br><span class="line">plt.title(<span class="string">&#x27;Feature Extraction (PCA)&#x27;</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-57.png?raw=true" alt="alt text"></p>
+<h1 id="小结或讨论"><a href="#小结或讨论" class="headerlink" title="小结或讨论"></a>小结或讨论</h1><p>显而易见的是，神经网络的分类方法能够适用于任何数据集，在模型搭建好之后，只需要进行训练，就可以得到不错的结果，训练的轮数越多，网络的层数越深，就能够得到约准确的分类，但是带来的时间开销也是巨大的。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/22/oslab5/" rel="prev" title="磁盘调度">
+      <i class="fa fa-chevron-left"></i> 磁盘调度
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/05/23/mllab10/" rel="next" title="基于改进UNet算法的农业图像分割">
+      基于改进UNet算法的农业图像分割 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">实验目的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%A6%81%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">实验要求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">实验原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%84%9F%E7%9F%A5%E5%99%A8"><span class="nav-number">3.1.</span> <span class="nav-text">感知器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.2.</span> <span class="nav-text">决策模型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%86%85%E5%AE%B9"><span class="nav-number">4.</span> <span class="nav-text">实验内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%AE%80%E4%BB%8B"><span class="nav-number">4.1.</span> <span class="nav-text">数据简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%A7%8B%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number">4.2.</span> <span class="nav-text">原始数据可视化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.3.</span> <span class="nav-text">模型设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E4%B8%8E%E6%80%A7%E8%83%BD%E8%AF%84%E4%BC%B0"><span class="nav-number">4.4.</span> <span class="nav-text">模型训练与性能评估</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9%E5%92%8C%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96"><span class="nav-number">4.5.</span> <span class="nav-text">特征选择和特征提取</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E4%BB%A3%E7%A0%81%E5%92%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">5.</span> <span class="nav-text">实验代码和结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%E6%88%96%E8%AE%A8%E8%AE%BA"><span class="nav-number">6.</span> <span class="nav-text">小结或讨论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁，而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">183k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:46</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

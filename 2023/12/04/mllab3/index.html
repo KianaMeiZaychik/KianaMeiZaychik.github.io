@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="实验目的    熟悉和掌握支持向量机    熟悉和掌握核函数处理非线性性问题    了解和掌握第三方机器学习库Scikit-learn中的模型调用  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    本次实验可以直接调用Scikit-learn、PyTorch等成熟框架的第三方实现    代码可读性强：变量、函数、类等命名可读性强，包含必要的注释">
+<meta property="og:type" content="article">
+<meta property="og:title" content="支持向量机实验">
+<meta property="og:url" content="http://example.com/2023/12/04/mllab3/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="实验目的    熟悉和掌握支持向量机    熟悉和掌握核函数处理非线性性问题    了解和掌握第三方机器学习库Scikit-learn中的模型调用  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    本次实验可以直接调用Scikit-learn、PyTorch等成熟框架的第三方实现    代码可读性强：变量、函数、类等命名可读性强，包含必要的注释">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-9.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-10.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-11.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-12.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-13.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-14.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-15.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-16.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-17.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-18.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-19.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-20.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-21.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-22.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-23.png?raw=true">
+<meta property="article:published_time" content="2023-12-04T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-06T11:03:28.993Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-9.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/12/04/mllab3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>支持向量机实验 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/12/04/mllab3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁，而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          支持向量机实验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-12-04 14:00:00" itemprop="dateCreated datePublished" datetime="2023-12-04T14:00:00+08:00">2023-12-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-07-06 19:03:28" itemprop="dateModified" datetime="2024-07-06T19:03:28+08:00">2024-07-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h1><ol>
+<li>   熟悉和掌握支持向量机</li>
+<li>   熟悉和掌握核函数处理非线性性问题</li>
+<li>   了解和掌握第三方机器学习库Scikit-learn中的模型调用</li>
+</ol>
+<h1 id="实验要求"><a href="#实验要求" class="headerlink" title="实验要求"></a>实验要求</h1><ol>
+<li>   采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言</li>
+<li>   本次实验可以直接调用Scikit-learn、PyTorch等成熟框架的第三方实现</li>
+<li>   代码可读性强：变量、函数、类等命名可读性强，包含必要的注释</li>
+</ol>
+<h1 id="实验原理"><a href="#实验原理" class="headerlink" title="实验原理"></a>实验原理<span id="more"></span></h1><p>支持向量机(Support Vector Machine)是Cortes和Vapnik于1995年首先提出的，它在解决小样本、非线性及高维模式识别中表现出许多特有的优势，并能够推广应用到函数拟合等其他机器学习问题中。</p>
+<p>小样本，并不是说样本的绝对数量少（实际上，对任何算法来说，更多的样本几乎总是能带来更好的效果），而是说与问题的复杂度比起来，SVM算法要求的样本数是相对比较少的。</p>
+<p>非线性，是指SVM擅长应付样本数据线性不可分的情况，主要通过松弛变量（也有人叫惩罚变量）和核函数技术来实现，这一部分是SVM的精髓，以后会详细讨论。</p>
+<p>高维模式识别是指样本维数很高，例如文本的向量表示，如果没有经过另一系列文章（《文本分类入门》）中提到过的降维处理，出现几万维的情况很正常，其他算法基本就没有能力应付了，SVM却可以，主要是因为SVM 产生的分类器很简洁，用到的样本信息很少（仅仅用到那些称之为“支持向量”的样本），使得即使样本维数很高，也不会给存储和计算带来大麻烦</p>
+<p>目前在引入SVM概述时主要有两个方式：</p>
+<p>一是：</p>
+<p>支持向量机方法是建立在统计学习理论的VC 维理论和结构风险最小原理基础上的，根据有限的样本信息在模型的复杂性（即对特定训练样本的学习精度，Accuracy）和学习能力（即无错误地识别任意样本的能力）之间寻求最佳折衷，以期获得最好的推广能力（或称泛化能力）。</p>
+<p>所谓VC维是对函数类的一种度量，可以简单的理解为问题的复杂程度，VC维越高，一个问题就越复杂。正是因为SVM关注的是VC维，后面我们可以看到，SVM解决问题的时候，和样本的维数是无关的（甚至样本是上万维的都可以，这使得SVM很适合用来解决文本分类的问题，当然，有这样的能力也因为引入了核函数）。</p>
+<p>结构风险是什么呢？机器学习本质上就是一种对问题真实模型的逼近，但毫无疑问，真实模型一定是不知道的。我们选择了一个假设之后，真实误差无从得知，但我们可以用某些可以掌握的量来逼近它。最直观的想法就是使用分类器在样本数据上的分类的结果与真实结果之间的差值来表示。这个差值叫做经验风险Remp(w)。此时的情况便是选择了一个足够复杂的分类函数，能够精确的记住每一个样本，但对样本之外的数据一律分类错误。统计学习因此而引入了泛化误差界的概念，就是指真实风险应该由两部分内容刻画，一是经验风险，代表了分类器在给定样本上的误差；二是置信风险，代表了我们在多大程度上可以信任分类器在未知数据分类的结果。很显然，第二部分是没有办法精确计算的，因此只能给出一个估计的区间，也使得整个误差只能计算上界，而无法计算准确的值（所以叫做泛化误差界，而不叫泛化误差）。</p>
+<p>置信风险与两个量有关，一是样本数量，显然给定的样本数量越大，我们的学习结果越有可能正确，此时置信风险越小；二是分类函数的VC维，显然VC维越大，推广能力越差，置信风险会变大。</p>
+<p>泛化误差界的公式为: $\mathrm{R}(\mathrm{w}) \leqslant \operatorname{Remp}(\mathrm{w})+\Phi(\mathrm{n} &#x2F; \mathrm{h})$ 。公式中 $\mathrm{R}(\mathrm{w})$ 就是真实风险, $\operatorname{Remp}(\mathrm{w})$ 就是经验风险, $\Phi(\mathrm{n} &#x2F; \mathrm{h})$ 就是置信风险。统计学习的目标从经验风险最小化变为了寻求经验风险与置信风险的和最小, 即结构风险最小。SVM 正是这样一种努力最小化结构风险的算法。</p>
+<p>从logistic回归出发，引出了SVM，既揭示了模型间的联系，也让人觉得过渡更自然。</p>
+<p>Logistic回归目的是从特征学习出一个0&#x2F;1分类模型，而这个模型是将特性的线性组合作为自变量，由于自变量的取值范围是负无穷到正无穷。因此，使用logistic函数（或称作sigmoid函数）将自变量映射到(0,1)上，映射后的值被认为是属于y&#x3D;1的概率。</p>
+<h1 id="实验内容"><a href="#实验内容" class="headerlink" title="实验内容"></a>实验内容</h1><h2 id="iris数据集支持向量机分类实验"><a href="#iris数据集支持向量机分类实验" class="headerlink" title="iris数据集支持向量机分类实验"></a>iris数据集支持向量机分类实验</h2><ol>
+<li>   从iris数据集中取出[sepal length，sepal width]两个属性作为样本特征，取前两类样本训练支持向量机进行二分类实验。注意每一类取前30个样本作为训练集，剩余的20个样本作为测试集。<ul>
+<li>Iris数据集介绍详见：<a target="_blank" rel="noopener" href="https://archive.ics.uci.edu/dataset/53/iris">https://archive.ics.uci.edu/dataset/53/iris</a> </li>
+<li>Scikit-learn库中预装了Iris数据集，安装库后采用 “from sklearn.datasets import load_iris” 可以直接读取，参考：<a target="_blank" rel="noopener" href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html">https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html</a></li>
+</ul>
+</li>
+<li>   借助matplotlib 画出原始训练数据分布的散点图（x&#x3D;“sepal length”，y&#x3D;“sepal width”，点的颜色代表不同类别）</li>
+<li>   调用sklearn的SVM模型包，实现分类算法</li>
+</ol>
+<p>结果展示：</p>
+<ul>
+<li>用训练的模型对测试数据进行分类，得到测试错误率</li>
+<li>使用不同的误差惩罚系数取值（分别为0.01、0.1、1.0、10和100）和核函数（分别为“linear”和“poly”）来组合，运行模型，并比较模型在最后的测试正确率以及可视化测试数据的SVM决策间隔。（提示：可调用sklearn库中的DecisionBoundaryDisplay）。</li>
+</ul>
+<h2 id="基于核函数的SVM非线性分类实验"><a href="#基于核函数的SVM非线性分类实验" class="headerlink" title="基于核函数的SVM非线性分类实验"></a>基于核函数的SVM非线性分类实验</h2><ol>
+<li>   利用sklearn生成非线性数据<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.datasets <span class="keyword">import</span> make_moons</span><br><span class="line">x, y = make_moons(n_samples=<span class="number">100</span>, noise=<span class="number">0.2</span>, random_state=<span class="number">0</span>)</span><br></pre></td></tr></table></figure></li>
+<li>   借助matplotlib 画出生成非线性数据的散点图</li>
+<li>   分别选取核函数（“linear”,“poly”,”rbf”）,根据API手册了解不同核函数对应的超参数，通过调节超参数展示绘制的决策平面。参考<a href="sklearn.svm.SVR-scikit-learn">sklearn API</a></li>
+</ol>
+<p>结果展示：展示使用三种不同核函数，在不同超参数下的决策平面</p>
+<h2 id="手写SVM模型"><a href="#手写SVM模型" class="headerlink" title="手写SVM模型"></a>手写SVM模型</h2><p>尝试手写SVM模型，实现鸢尾花数据集分类</p>
+<h1 id="实验代码和结果"><a href="#实验代码和结果" class="headerlink" title="实验代码和结果"></a>实验代码和结果</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">from</span> sklearn.svm <span class="keyword">import</span> SVC, LinearSVC</span><br><span class="line"><span class="keyword">from</span> sklearn.datasets <span class="keyword">import</span> make_blobs</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> sklearn.datasets <span class="keyword">import</span> load_iris</span><br><span class="line">iris = load_iris()</span><br><span class="line">df = pd.DataFrame(iris.data, columns=iris.feature_names)</span><br><span class="line">df[<span class="string">&#x27;label&#x27;</span>] = iris.target</span><br><span class="line">df.columns = [<span class="string">&#x27;sepal length&#x27;</span>, <span class="string">&#x27;sepal width&#x27;</span>, <span class="string">&#x27;petal length&#x27;</span>, <span class="string">&#x27;petal width&#x27;</span>, <span class="string">&#x27;label&#x27;</span>]</span><br><span class="line">first_40_rows = df.head(<span class="number">30</span>)</span><br><span class="line">rows_50_to_90 = df[<span class="number">50</span>:<span class="number">80</span>]</span><br><span class="line">dt = pd.concat([first_40_rows, rows_50_to_90])</span><br><span class="line">data = np.array(dt.iloc[:<span class="number">80</span>, [<span class="number">0</span>, <span class="number">1</span>, -<span class="number">1</span>]])</span><br><span class="line">test1=df[<span class="number">30</span>:<span class="number">50</span>]</span><br><span class="line">test2=df[<span class="number">80</span>:<span class="number">100</span>]</span><br><span class="line">test=pd.concat([test1,test1])</span><br><span class="line">test=np.array(test.iloc[:<span class="number">100</span>, [<span class="number">0</span>, <span class="number">1</span>, -<span class="number">1</span>]])</span><br><span class="line">TX, Ty = test[:,:-<span class="number">1</span>], test[:,-<span class="number">1</span>]</span><br><span class="line">Ty = np.array([<span class="number">1</span> <span class="keyword">if</span> i == <span class="number">1</span> <span class="keyword">else</span> -<span class="number">1</span> <span class="keyword">for</span> i <span class="keyword">in</span> Ty])</span><br><span class="line">X, y = data[:,:-<span class="number">1</span>], data[:,-<span class="number">1</span>]</span><br><span class="line">y = np.array([<span class="number">1</span> <span class="keyword">if</span> i == <span class="number">1</span> <span class="keyword">else</span> -<span class="number">1</span> <span class="keyword">for</span> i <span class="keyword">in</span> y])</span><br><span class="line">ker=[<span class="string">&#x27;linear&#x27;</span>,<span class="string">&#x27;poly&#x27;</span>]</span><br><span class="line">C=[<span class="number">0.01</span>,<span class="number">0.1</span>,<span class="number">1</span>,<span class="number">10</span>,<span class="number">100</span>]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ker:</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> C:</span><br><span class="line">     modelSVM = SVC(kernel=i, C=j)  <span class="comment"># SVC 建模：使用 SVC类，线性核函数</span></span><br><span class="line"><span class="comment"># modelSVM = LinearSVC(C=100)  # SVC 建模：使用 LinearSVC类，运行结果同上</span></span><br><span class="line">     modelSVM.fit(X, y)  <span class="comment"># 用样本集 X,y 训练 SVM 模型</span></span><br><span class="line">     <span class="built_in">print</span>(<span class="string">&#x27;分类准确度：&#123;:.4f&#125;&#x27;</span>.<span class="built_in">format</span>(modelSVM.score(TX, Ty)))  <span class="comment"># 对训练集的分类准确度</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制分割超平面和样本集分类结果</span></span><br><span class="line">     plt.scatter(X[:,<span class="number">0</span>], X[:,<span class="number">1</span>], c=y, s=<span class="number">30</span>, cmap=plt.cm.Paired)  <span class="comment"># 散点图，根据 y值设置不同颜色</span></span><br><span class="line">     ax = plt.gca()  <span class="comment"># 移动坐标轴</span></span><br><span class="line">     xlim = ax.get_xlim()  <span class="comment"># 获得Axes的 x坐标范围</span></span><br><span class="line">     ylim = ax.get_ylim()  <span class="comment"># 获得Axes的 y坐标范围</span></span><br><span class="line">     xx = np.linspace(xlim[<span class="number">0</span>], xlim[<span class="number">1</span>], <span class="number">30</span>)  <span class="comment"># 创建等差数列，从 start 到 stop，共 num 个</span></span><br><span class="line">     yy = np.linspace(ylim[<span class="number">0</span>], ylim[<span class="number">1</span>], <span class="number">30</span>)</span><br><span class="line">     YY, XX = np.meshgrid(yy, xx)</span><br><span class="line">     xy = np.vstack([XX.ravel(), YY.ravel()]).T  <span class="comment"># 将网格矩阵展平后重构为数组</span></span><br><span class="line">     Z = modelSVM.decision_function(xy).reshape(XX.shape)</span><br><span class="line">     ax.contour(XX, YY, Z, colors=<span class="string">&#x27;k&#x27;</span>, levels=[-<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>], alpha=<span class="number">0.5</span>,</span><br><span class="line">           linestyles=[<span class="string">&#x27;--&#x27;</span>, <span class="string">&#x27;-&#x27;</span>, <span class="string">&#x27;--&#x27;</span>])  <span class="comment"># 绘制决策边界和分隔</span></span><br><span class="line">     ax.scatter(modelSVM.support_vectors_[:, <span class="number">0</span>], modelSVM.support_vectors_[:, <span class="number">1</span>], s=<span class="number">100</span>,</span><br><span class="line">           linewidth=<span class="number">1</span>, facecolors=<span class="string">&#x27;none&#x27;</span>, edgecolors=<span class="string">&#x27;k&#x27;</span>)  <span class="comment"># 绘制 支持向量</span></span><br><span class="line">     plt.title(<span class="string">f&quot;SVM Decision Boundary with kernel=<span class="subst">&#123;i&#125;</span> and C=<span class="subst">&#123;j&#125;</span>&quot;</span>)</span><br><span class="line">     plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-9.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-10.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-11.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-12.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-13.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-14.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-15.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-16.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-17.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-18.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-19.png?raw=true" alt="alt text"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">from</span> sklearn.datasets <span class="keyword">import</span> make_moons</span><br><span class="line"><span class="keyword">from</span> sklearn.svm <span class="keyword">import</span> SVC</span><br><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> StandardScaler</span><br><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> accuracy_score</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成非线性数据</span></span><br><span class="line">x, y = make_moons(n_samples=<span class="number">100</span>, noise=<span class="number">0.2</span>, random_state=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 画出散点图</span></span><br><span class="line">plt.scatter(x[:, <span class="number">0</span>], x[:, <span class="number">1</span>], c=y, cmap=plt.cm.Paired)</span><br><span class="line"></span><br><span class="line">plt.show()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将数据集划分为训练集和测试集</span></span><br><span class="line">x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=<span class="number">0.2</span>, random_state=<span class="number">42</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 数据标准化</span></span><br><span class="line">scaler = StandardScaler()</span><br><span class="line">x_train = scaler.fit_transform(x_train)</span><br><span class="line">x_test = scaler.transform(x_test)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 不同核函数的超参数设置</span></span><br><span class="line">kernel_params = [&#123;<span class="string">&#x27;kernel&#x27;</span>: <span class="string">&#x27;poly&#x27;</span>, <span class="string">&#x27;degree&#x27;</span>: <span class="number">3</span>, <span class="string">&#x27;C&#x27;</span>: <span class="number">1.0</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&#x27;kernel&#x27;</span>: <span class="string">&#x27;rbf&#x27;</span>, <span class="string">&#x27;gamma&#x27;</span>: <span class="number">0.5</span>, <span class="string">&#x27;C&#x27;</span>: <span class="number">1.0</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&#x27;kernel&#x27;</span>: <span class="string">&#x27;linear&#x27;</span>, <span class="string">&#x27;C&#x27;</span>: <span class="number">1.0</span>&#125;,</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制决策平面</span></span><br><span class="line">plt.figure(figsize=(<span class="number">15</span>, <span class="number">5</span>))</span><br><span class="line"><span class="keyword">for</span> i, params <span class="keyword">in</span> <span class="built_in">enumerate</span>(kernel_params, <span class="number">1</span>):</span><br><span class="line">    <span class="comment"># 创建SVM模型</span></span><br><span class="line">    svm_model = SVC(**params)</span><br><span class="line">    svm_model.fit(x_train, y_train)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 在训练集上绘制决策平面</span></span><br><span class="line"></span><br><span class="line">    plt.scatter(x_train[:, <span class="number">0</span>], x_train[:, <span class="number">1</span>], c=y_train, cmap=plt.cm.Paired)</span><br><span class="line">    plt.title(<span class="string">f&quot;SVM Decision Boundary (<span class="subst">&#123;params[<span class="string">&#x27;kernel&#x27;</span>]&#125;</span> kernel)&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 绘制决策平面</span></span><br><span class="line">    h = <span class="number">0.02</span></span><br><span class="line">    x_min, x_max = x_train[:, <span class="number">0</span>].<span class="built_in">min</span>() - <span class="number">1</span>, x_train[:, <span class="number">0</span>].<span class="built_in">max</span>() + <span class="number">1</span></span><br><span class="line">    y_min, y_max = x_train[:, <span class="number">1</span>].<span class="built_in">min</span>() - <span class="number">1</span>, x_train[:, <span class="number">1</span>].<span class="built_in">max</span>() + <span class="number">1</span></span><br><span class="line">    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))</span><br><span class="line"></span><br><span class="line">    Z = svm_model.predict(np.c_[xx.ravel(), yy.ravel()])</span><br><span class="line">    Z = Z.reshape(xx.shape)</span><br><span class="line"></span><br><span class="line">    plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=<span class="number">0.6</span>)</span><br><span class="line">    plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-20.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-21.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-22.png?raw=true" alt="alt text"><br><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-23.png?raw=true" alt="alt text"></p>
+<h1 id="小结或讨论"><a href="#小结或讨论" class="headerlink" title="小结或讨论"></a>小结或讨论</h1><p>SVM的优缺点：</p>
+<p>优点:</p>
+<p>可用于线性&#x2F;非线性分类，也可以用于回归，泛化错误率低，也就是说具有良好的学习能力，且学到的结果具有很好的推广性。</p>
+<p>可以解决小样本情况下的机器学习问题，可以解决高维问题，可以避免神经网络结构选择和局部极小点问题。</p>
+<p>SVM是最好的现成的分类器，现成是指不加修改可直接使用。并且能够得到较低的错误率，SVM可以对训练集之外的数据点做很好的分类决策。</p>
+<p>缺点：</p>
+<p>对参数调节和和函数的选择敏感。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/01/oslab2/" rel="prev" title="进程调度(下)">
+      <i class="fa fa-chevron-left"></i> 进程调度(下)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/12/08/oslab3/" rel="next" title="避免死锁">
+      避免死锁 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">实验目的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%A6%81%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">实验要求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">实验原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%86%85%E5%AE%B9"><span class="nav-number">4.</span> <span class="nav-text">实验内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#iris%E6%95%B0%E6%8D%AE%E9%9B%86%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA%E5%88%86%E7%B1%BB%E5%AE%9E%E9%AA%8C"><span class="nav-number">4.1.</span> <span class="nav-text">iris数据集支持向量机分类实验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E6%A0%B8%E5%87%BD%E6%95%B0%E7%9A%84SVM%E9%9D%9E%E7%BA%BF%E6%80%A7%E5%88%86%E7%B1%BB%E5%AE%9E%E9%AA%8C"><span class="nav-number">4.2.</span> <span class="nav-text">基于核函数的SVM非线性分类实验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%8B%E5%86%99SVM%E6%A8%A1%E5%9E%8B"><span class="nav-number">4.3.</span> <span class="nav-text">手写SVM模型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E4%BB%A3%E7%A0%81%E5%92%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">5.</span> <span class="nav-text">实验代码和结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%E6%88%96%E8%AE%A8%E8%AE%BA"><span class="nav-number">6.</span> <span class="nav-text">小结或讨论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁，而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">183k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:46</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="实验目的    熟悉和掌握集成学习的基本原理    熟悉和掌握集成学习的并行策略，Bagging与随机森林解决复杂分类问题    熟悉和掌握集成学习的串行策略，Boosting与Adaboost解决复杂分类问题    了解和掌握第三方机器学习库Scikit-learn中的模型调用  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    本次实验可以直">
+<meta property="og:type" content="article">
+<meta property="og:title" content="集成学习实验">
+<meta property="og:url" content="http://example.com/2023/12/11/mllab4/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="实验目的    熟悉和掌握集成学习的基本原理    熟悉和掌握集成学习的并行策略，Bagging与随机森林解决复杂分类问题    熟悉和掌握集成学习的串行策略，Boosting与Adaboost解决复杂分类问题    了解和掌握第三方机器学习库Scikit-learn中的模型调用  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    本次实验可以直">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-24.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-25.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-26.png?raw=true">
+<meta property="article:published_time" content="2023-12-11T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-06T11:03:29.010Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-24.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/12/11/mllab4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>集成学习实验 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/12/11/mllab4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁，而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          集成学习实验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-12-11 14:00:00" itemprop="dateCreated datePublished" datetime="2023-12-11T14:00:00+08:00">2023-12-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-07-06 19:03:29" itemprop="dateModified" datetime="2024-07-06T19:03:29+08:00">2024-07-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h1><ol>
+<li>   熟悉和掌握集成学习的基本原理</li>
+<li>   熟悉和掌握集成学习的并行策略，Bagging与随机森林解决复杂分类问题</li>
+<li>   熟悉和掌握集成学习的串行策略，Boosting与Adaboost解决复杂分类问题</li>
+<li>   了解和掌握第三方机器学习库Scikit-learn中的模型调用</li>
+</ol>
+<h1 id="实验要求"><a href="#实验要求" class="headerlink" title="实验要求"></a>实验要求</h1><ol>
+<li>   采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言</li>
+<li>   本次实验可以直接调用Scikit-learn、PyTorch等成熟框架的第三方实现<span id="more"></span></li>
+<li>   代码可读性强：变量、函数、类等命名可读性强，包含必要的注释</li>
+</ol>
+<h1 id="实验原理"><a href="#实验原理" class="headerlink" title="实验原理"></a>实验原理</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>集成学习(Ensemble learning)通过构建并结合多个学习器来完成学习任务，有时也被称为多分类器系统、基于委员会的学习等，集成学习通常可以获得比单一学习模型更好的泛化性。</p>
+<h2 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h2><p>先产生多个“个体学习器”，也叫做“基学习器”，再用某种策略将它们结合起来，集成中只包含同种类型的个体学习器叫做同质，包含不同类型的个体学习器叫做异质。要获得好的集成就应该找到“好而不同”的个体学习器，这就是集成学习的研究核心。</p>
+<h2 id="Boosting"><a href="#Boosting" class="headerlink" title="Boosting"></a>Boosting</h2><p>Boosting是一簇可将弱学习器提升为强学习器的算法。其工作机制为：<br>先从初始训练集训练出一个基学习器<br>再根据基学习器的表现对样本分布进行调整，使得先前的基学习器做错的训练样本在后续收到更多的关注<br>然后基于调整后的样本分布来训练下一个基学习器；如此重复进行，直至基学习器数目达到实现指定的值T，或整个集成结果达到退出条件<br>然后将这些学习器进行加权结合。</p>
+<h2 id="AdaBoost"><a href="#AdaBoost" class="headerlink" title="AdaBoost"></a>AdaBoost</h2><p>AdaBoost是Boosting中的经典算法，其主要应用于二分类问题。<br>Adaboost 算法采用调整样本权重的方式来对样本分布进行调整，即提高前一轮个体学习器错误分类的样本的权重，而降低那些正确分类的样本的权重，这样就能使得错误分类的样本可以受到更多的关注，从而在下一轮中可以正确分类，使得分类问题被一系列的弱分类器“分而治之”。对于组合方式，AdaBoost采用加权多数表决的方法，具体地，加大分类误差率小的若分类器的权值，减小分类误差率大的若分类器的权值，从而调整他们在表决中的作用。</p>
+<h2 id="随机森林"><a href="#随机森林" class="headerlink" title="随机森林"></a>随机森林</h2><p>随机森林(Random Forest，简称RF)是Bagging集成学习方法的一个扩展变体。随机森林以决策树作为Bagging集成学习的基学习器，与经典的决策树不同，随机森林在构建决策树模型的时候不是在所有的属性上去选择最优划分属性，而是在数据集属性的一个随机子集上进行最优划分属性的选择。由于基学习器的训练数据以及特征属性都不完全相同，随机森林构造的基学习器具有较大的差异，使得随机森林不仅简单、计算开销小，而且在很多实际任务中展现出强大的性能。</p>
+<h1 id="实验内容"><a href="#实验内容" class="headerlink" title="实验内容"></a>实验内容</h1><h2 id="数据集准备"><a href="#数据集准备" class="headerlink" title="数据集准备"></a>数据集准备</h2><ol>
+<li>   利用sklearn生成非线性数据（用于主体实验数据）<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.datasets <span class="keyword">import</span> make_moons</span><br><span class="line">x, y = make_moons(n_samples=<span class="number">1000</span>, noise=<span class="number">0.4</span>, random_state=<span class="number">0</span>)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<ul>
+<li>生成的数据按照按照3:1切分训练集与测试集</li>
+<li>数据切分的随机种子调成0（即random_state&#x3D;0）</li>
+</ul>
+<ol start="2">
+<li>   利用sklearn自带.的Iris数据集（主要完成随机森林的特征可视化）</li>
+</ol>
+<h2 id="基于不同分类器的集成学习（仅在make-moons数据集上实现）"><a href="#基于不同分类器的集成学习（仅在make-moons数据集上实现）" class="headerlink" title="基于不同分类器的集成学习（仅在make_moons数据集上实现）"></a>基于不同分类器的集成学习（仅在make_moons数据集上实现）</h2><ol>
+<li>   利调用sklearn中的knn，logistic回归和高斯朴素贝叶斯三种分类器</li>
+<li>   模型分别学习make_moons训练集中的数据</li>
+<li>   自己编程实现基于多数投票的集成选择（不得使用sklean实现）</li>
+<li>   尝试采用sklean中的VotingClassifier实现基于“硬投票”和“软投票”的分类</li>
+</ol>
+<p>结果展示：</p>
+<ul>
+<li>分别展示三种分类器的分类结果以及手写多数投票的集成实验结果</li>
+<li>展示基于硬投票和软投票集成的分类结果</li>
+</ul>
+<h2 id="基于Bagging的随机森林算法实现"><a href="#基于Bagging的随机森林算法实现" class="headerlink" title="基于Bagging的随机森林算法实现"></a>基于Bagging的随机森林算法实现</h2><ol>
+<li>   尝试基于sklearn中的BaggingClassifier和DecisionTreeClassifier构建随机森林，并实现make_moons数据集的分类</li>
+<li>   尝试基于sklearn中的RandomForestClassifier构建随机森林，并利用feature_importances_分析属性的重要性（属性的重要性可在make_moons和iris数据集中分别尝试）<br>结果展示：</li>
+</ol>
+<ul>
+<li>分别展示两种构造随机森林方法在make_moons测试集上的分类结果</li>
+<li>展示随机森林对make_moons和iris特征重要性的比例</li>
+</ul>
+<h2 id="基于Boosting的算法实现"><a href="#基于Boosting的算法实现" class="headerlink" title="基于Boosting的算法实现"></a>基于Boosting的算法实现</h2><ol>
+<li>   尝试基于sklearn中的AdaBoostClassifier实现make_moons数据集的分类</li>
+<li>   尝试基于sklearn中的GradientBoostingClassifier实现make_moons数据集的分类</li>
+</ol>
+<p>结果展示：分别展示两种boosting方法在make_moons测试集上的分类结果</p>
+<h1 id="实验代码和结果"><a href="#实验代码和结果" class="headerlink" title="实验代码和结果"></a>实验代码和结果</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line"><span class="keyword">from</span> sklearn.datasets <span class="keyword">import</span> make_moons</span><br><span class="line"><span class="keyword">from</span> sklearn.datasets <span class="keyword">import</span> load_iris</span><br><span class="line"><span class="keyword">from</span> sklearn.neighbors <span class="keyword">import</span> KNeighborsClassifier</span><br><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LogisticRegression</span><br><span class="line"><span class="keyword">from</span> sklearn.naive_bayes <span class="keyword">import</span> GaussianNB</span><br><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> VotingClassifier</span><br><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> accuracy_score</span><br><span class="line">x, y = make_moons(n_samples=<span class="number">1000</span>, noise=<span class="number">0.4</span>, random_state=<span class="number">0</span>)</span><br><span class="line">X_train,X_test,y_train,y_test=train_test_split(x,y,train_size=<span class="number">0.75</span>,test_size=<span class="number">0.25</span>,random_state=<span class="number">0</span>)</span><br><span class="line">knn = KNeighborsClassifier()    <span class="comment">#实例化KNN模型</span></span><br><span class="line">knn.fit(X_train, y_train)   <span class="comment">#放入训练数据进行训练</span></span><br><span class="line">pk=knn.predict(X_test)</span><br><span class="line">lstr=LogisticRegression()</span><br><span class="line">lstr.fit(X_train,y_train)</span><br><span class="line">pl=lstr.predict(X_test)</span><br><span class="line">gnb=GaussianNB()</span><br><span class="line">gnb.fit(X_train,y_train)</span><br><span class="line">pg=gnb.predict(X_test)</span><br><span class="line">pre=(pk+pl+pg)/<span class="number">3</span></span><br><span class="line">count=<span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(pre)):</span><br><span class="line">    <span class="keyword">if</span>(pre[i]&lt;<span class="number">0.5</span>): pre[i]=<span class="number">0</span></span><br><span class="line">    <span class="keyword">else</span>:pre[i]=<span class="number">1</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;KNN分类准确率:&quot;</span>,accuracy_score(y_test,pk))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;logistic regression分类准确率:&quot;</span>,accuracy_score(y_test,pl))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;高斯朴素贝叶斯分类准确率:&quot;</span>,accuracy_score(y_test,pg))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;手写投票测试准确率:&quot;</span> + <span class="built_in">str</span>(accuracy_score(y_test,pre)))</span><br><span class="line">voting_clf = VotingClassifier(estimators=[</span><br><span class="line">    (<span class="string">&#x27;knn&#x27;</span>, knn),</span><br><span class="line">    (<span class="string">&#x27;lstr&#x27;</span>, lstr),</span><br><span class="line">    (<span class="string">&#x27;gnb&#x27;</span>, gnb),</span><br><span class="line">], voting=<span class="string">&#x27;hard&#x27;</span>)</span><br><span class="line">voting_clf.fit(X_train,y_train)</span><br><span class="line">vh=voting_clf.predict(X_test)</span><br><span class="line">votings = VotingClassifier(estimators=[</span><br><span class="line">    (<span class="string">&#x27;knn&#x27;</span>, knn),</span><br><span class="line">    (<span class="string">&#x27;lstr&#x27;</span>, lstr),</span><br><span class="line">    (<span class="string">&#x27;gnb&#x27;</span>, gnb),</span><br><span class="line">], voting=<span class="string">&#x27;soft&#x27;</span>)</span><br><span class="line">votings.fit(X_train,y_train)</span><br><span class="line">vs=votings.predict(X_test)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;硬投票测试准确率:&quot;</span> + <span class="built_in">str</span>(accuracy_score(y_test,vh)))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;软投票测试准确率:&quot;</span> + <span class="built_in">str</span>(accuracy_score(y_test,vs)))</span><br><span class="line"> </span><br><span class="line"><span class="keyword">from</span> sklearn.datasets <span class="keyword">import</span> load_iris</span><br><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> VotingClassifier</span><br><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> accuracy_score</span><br><span class="line"><span class="keyword">from</span> sklearn.tree <span class="keyword">import</span> DecisionTreeClassifier</span><br><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> BaggingClassifier</span><br><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> RandomForestClassifier</span><br><span class="line">iris=load_iris()</span><br><span class="line">Xi=iris.data</span><br><span class="line">Xi=Xi[<span class="number">0</span>:<span class="number">100</span>]</span><br><span class="line">yi=iris.target</span><br><span class="line">yi=yi[<span class="number">0</span>:<span class="number">100</span>]</span><br><span class="line">Xi_train,Xi_test,yi_train,yi_test=train_test_split(Xi,yi,train_size=<span class="number">0.75</span>,test_size=<span class="number">0.25</span>,random_state=<span class="number">0</span>)</span><br><span class="line">x, y = make_moons(n_samples=<span class="number">1000</span>, noise=<span class="number">0.4</span>, random_state=<span class="number">0</span>)</span><br><span class="line">X_train,X_test,y_train,y_test=train_test_split(x,y,train_size=<span class="number">0.75</span>,test_size=<span class="number">0.25</span>,random_state=<span class="number">0</span>)</span><br><span class="line">clf = DecisionTreeClassifier()</span><br><span class="line">rfc1 = BaggingClassifier(clf,n_estimators=<span class="number">50</span>)</span><br><span class="line">rfc1.fit(X_train,y_train)</span><br><span class="line">pr=rfc1.predict(X_test)</span><br><span class="line">rfc2=RandomForestClassifier(n_estimators=<span class="number">50</span>)</span><br><span class="line">rfc2.fit(X_train,y_train)</span><br><span class="line">pr2=rfc2.predict(X_test)</span><br><span class="line">rfc3=RandomForestClassifier(n_estimators=<span class="number">50</span>)</span><br><span class="line">rfc3.fit(Xi_train,yi_train)</span><br><span class="line">pr3=rfc3.predict(Xi_test)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;BaggingClassifier的准确率:&quot;</span>,accuracy_score(y_test,pr))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;RandomForestClassifier的准确率:&quot;</span>,accuracy_score(y_test,pr2))</span><br><span class="line">feai=rfc2.feature_importances_</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;特征的重要性:&quot;</span>,feai)</span><br></pre></td></tr></table></figure>
+<p>make moon的结果:</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-24.png?raw=true" alt="alt text"></p>
+<p>iris的结果：</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-25.png?raw=true" alt="alt text"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">adb = AdaBoostClassifier(n_estimators=<span class="number">100</span>)</span><br><span class="line">grb=GradientBoostingClassifier(n_estimators=<span class="number">100</span>)</span><br><span class="line">adb.fit(X_train,y_train)</span><br><span class="line">grb.fit(X_train,y_train)</span><br><span class="line">pa=adb.predict(X_test)</span><br><span class="line">pg=grb.predict(X_test)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;AdaBoostClassifier的准确率为&quot;</span>,accuracy_score(y_test,pa))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;GradientBoostingClassifier的准确率为&quot;</span>,accuracy_score(y_test,pg))</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-26.png?raw=true" alt="alt text"></p>
+<h1 id="小结或讨论"><a href="#小结或讨论" class="headerlink" title="小结或讨论"></a>小结或讨论</h1><p>集成方法有很多种，一种叫做bagging，bagging的思想是，我把我的数据做一点微小的调整，就得到了一个跟原来不一样的数据集，我就能多训练一个模型出来，模型的数量多了，解释力自然就增强了。比如说我原来有100个人的数据，其中有两个分别叫Tony和Lily，我把Tony这条数据删掉，用Lily的数据来替换，这样就得到了一个跟原来不一样的船新的数据集，这个过程叫做Bootstrap</p>
+<p>每一个Bootstrap数据集都能用来训练一次模型，所以我们重复这个过程，比如重复1000次，一次是Tony替代Cici，一次是Ivy替代Yuki，这样每一次都是不一样的数据，也就可以训练1000次，得到了1000个决策树，我们把这1000个决策树打包到一起作为我们最终的模型，这个打包就叫做bagging</p>
+<p>一般我们会把bagging跟随机森林一起叠加使用，在数据点的处理上，我们使用bagging来创造许多组（比如说1000组）bootstrap数据，对于每一组数据，我们使用随机森林来训练模型，最后再把所有模型的预测结果bagging起来</p>
+<p>第二种集成的方法是boosting，boosting跟bagging一样都属于集成的思想，本质上都是训练很多模型，用数量堆积出质量。还是举1000个model，100个variable的例子，bagging是训练1000个等价的模型，比如说用随机森林，这些模型都是同样随机从100个里面选10个variable出来训练，每一个模型之间是同一级别的、互不干扰的</p>
+<p>但boosting的思路和bagging不同，boosting里每一个模型都是基于上一个模型来进行优化，它的核心思想是训练1000个模型，每一个模型在上一个模型的基础上再好一点点</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/08/oslab3/" rel="prev" title="避免死锁">
+      <i class="fa fa-chevron-left"></i> 避免死锁
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/12/14/oslab4/" rel="next" title="虚拟存储">
+      虚拟存储 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">实验目的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%A6%81%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">实验要求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">实验原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">3.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="nav-number">3.2.</span> <span class="nav-text">基本结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Boosting"><span class="nav-number">3.3.</span> <span class="nav-text">Boosting</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AdaBoost"><span class="nav-number">3.4.</span> <span class="nav-text">AdaBoost</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97"><span class="nav-number">3.5.</span> <span class="nav-text">随机森林</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%86%85%E5%AE%B9"><span class="nav-number">4.</span> <span class="nav-text">实验内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%9B%86%E5%87%86%E5%A4%87"><span class="nav-number">4.1.</span> <span class="nav-text">数据集准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E4%B8%8D%E5%90%8C%E5%88%86%E7%B1%BB%E5%99%A8%E7%9A%84%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0%EF%BC%88%E4%BB%85%E5%9C%A8make-moons%E6%95%B0%E6%8D%AE%E9%9B%86%E4%B8%8A%E5%AE%9E%E7%8E%B0%EF%BC%89"><span class="nav-number">4.2.</span> <span class="nav-text">基于不同分类器的集成学习（仅在make_moons数据集上实现）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8EBagging%E7%9A%84%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.3.</span> <span class="nav-text">基于Bagging的随机森林算法实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8EBoosting%E7%9A%84%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.4.</span> <span class="nav-text">基于Boosting的算法实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E4%BB%A3%E7%A0%81%E5%92%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">5.</span> <span class="nav-text">实验代码和结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%E6%88%96%E8%AE%A8%E8%AE%BA"><span class="nav-number">6.</span> <span class="nav-text">小结或讨论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁，而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">183k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:46</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

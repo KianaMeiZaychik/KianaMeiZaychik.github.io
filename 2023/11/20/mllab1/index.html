@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cr32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cr16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"Available values":"tabs | buttons","style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="实验目的    熟悉和掌握单变量线性回归算法    熟悉和掌握批处理梯度下降算法    熟悉和掌握多变量线性回归算法  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    核心模型和算法需自主编程实现，不得直接调用Scikit-learn、PyTorch等成熟框架的第三方实现    代码可读性强：变量、函数、类等命名可读性强，包含必要的注释  实验">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线性回归实验">
+<meta property="og:url" content="http://example.com/2023/11/20/mllab1/index.html">
+<meta property="og:site_name" content="Lilin">
+<meta property="og:description" content="实验目的    熟悉和掌握单变量线性回归算法    熟悉和掌握批处理梯度下降算法    熟悉和掌握多变量线性回归算法  实验要求    采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言    核心模型和算法需自主编程实现，不得直接调用Scikit-learn、PyTorch等成熟框架的第三方实现    代码可读性强：变量、函数、类等命名可读性强，包含必要的注释  实验">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-1.png?raw=true">
+<meta property="og:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-2.png?raw=true">
+<meta property="article:published_time" content="2023-11-20T06:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-06T11:03:28.986Z">
+<meta property="article:author" content="闲云">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/11/20/mllab1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>线性回归实验 | Lilin</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lilin</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="fa fa-download fa-fw"></i>资源</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/11/20/mllab1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Christina.jpg">
+      <meta itemprop="name" content="闲云">
+      <meta itemprop="description" content="雄关漫道真如铁，而今迈步从头越">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lilin">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          线性回归实验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-11-20 14:00:00" itemprop="dateCreated datePublished" datetime="2023-11-20T14:00:00+08:00">2023-11-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-07-06 19:03:28" itemprop="dateModified" datetime="2024-07-06T19:03:28+08:00">2024-07-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h1><ol>
+<li>   熟悉和掌握单变量线性回归算法</li>
+<li>   熟悉和掌握批处理梯度下降算法</li>
+<li>   熟悉和掌握多变量线性回归算法</li>
+</ol>
+<h1 id="实验要求"><a href="#实验要求" class="headerlink" title="实验要求"></a>实验要求</h1><ol>
+<li>   采用Python、Matlab等高级语言进行编程，推荐优先选用Python语言</li>
+<li>   核心模型和算法需自主编程实现，不得直接调用Scikit-learn、PyTorch等成熟框架的第三方实现</li>
+<li>   代码可读性强：变量、函数、类等命名可读性强，包含必要的注释</li>
+</ol>
+<h1 id="实验原理"><a href="#实验原理" class="headerlink" title="实验原理"></a>实验原理</h1><h2 id="一元线性回归模型"><a href="#一元线性回归模型" class="headerlink" title="一元线性回归模型"></a>一元线性回归模型<span id="more"></span></h2><p>即 $D&#x3D;\left\{\left(x_i, y_i\right)\right\}_{i&#x3D;1}^m$, 其中 $x_i \in R$. 对离散属性, 若属性值间存在 “序” 关系, 可以通过连续化将其转化为连续值。线性回归试图学得<br>$$<br>f\left(x_i\right)&#x3D;w x_i+b \text {, 使得 } f\left(x_i\right) \cong y_i<br>$$</p>
+<p>均方误差是回归任务中最常用的性能度量, 因此我们可试图让均方误差最小化, 即:<br>$$<br>\left(w^*, b^*\right)&#x3D;\underset{(w, b)}{\arg \min } \sum_{i&#x3D;1}^m\left(f\left(x_i\right)-y_i\right)^2&#x3D;\underset{(w, b)}{\arg \min } \sum_{i&#x3D;1}^m\left(w x_i+b-y_i\right)^2<br>$$</p>
+<p>均方误差对应了常用的欧几里得距离。基于均方误差最小化来进行模型求解的方法称为 “最小二乘法”。在线性回归中, 最小二乘法就是试图找到一条直线, 使所有样本到直线上的欧氏距离之和最小。</p>
+<p>求解 $w$ 和 $b$ 使 $E_{(w, b)}&#x3D;\sum_{i&#x3D;1}^m\left(w x_i+b-y_i\right)^2$ 最小化的过程, 称为线性回归模型的最小二乘 “参数估计”。我们可将 $E_{(w, b)}$ 分别对 $w$ 和 $b$ 求导, 得到:<br>$$<br>\begin{gathered}<br>\frac{\partial E_{(w, b)}}{\partial w}&#x3D;2\left(w \sum_{i&#x3D;1}^m x_i^2-\sum_{i&#x3D;1}^m\left(y_i-b\right) x_i\right), \\<br>\frac{\partial E_{(w, b)}}{\partial w}&#x3D;2\left(m b-\sum_{i&#x3D;1}^m\left(y_i-w x_i\right)\right),<br>\end{gathered}<br>$$</p>
+<p>然后令上式为 0 , 可以得到 $w$ 和 $b$ 最优解的闭式解:<br>$$<br>\begin{gathered}<br>w&#x3D;\frac{\sum_{i&#x3D;1}^m y_i\left(x_i-\bar{x}\right)}{\sum_{i&#x3D;1}^m x_i^2-\frac{1}{m}\left(\sum_{i&#x3D;1}^m x\right)^2}, \<br>b&#x3D;\frac{1}{m} \sum_{i&#x3D;1}^m\left(y_i-w x_i\right),<br>\end{gathered}<br>$$</p>
+<p>其中, $\bar{x}&#x3D;\frac{1}{m} \sum_{i&#x3D;1}^m x$ 为 $x$ 的均值。</p>
+<h2 id="多元线性回归模型"><a href="#多元线性回归模型" class="headerlink" title="多元线性回归模型"></a>多元线性回归模型</h2><p>样本由 $d$ 个属性描述, 此时我们试图学得<br>$$<br>f\left(x_i\right)&#x3D;w^T x_i+b \text {, 使得 } f\left(x_i\right) \cong y_i<br>$$</p>
+<p>类似的, 可利用最小二乘法来对 $w$ 和 $b$ 进行估计。<br>$$<br>X&#x3D;\left(\begin{array}{ccccc}<br>x_{11} &amp; x_{12} &amp; \cdots &amp; x_{1 d} &amp; 1 \\<br>x_{21} &amp; x_{22} &amp; \cdots &amp; x_{2 d} &amp; 1 \\<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; 1 \\<br>x_{m 1} &amp; x_{m 2} &amp; \cdots &amp; x_{m d} &amp; 1<br>\end{array}\right)&#x3D;\left(\begin{array}{cc}<br>x_1^T &amp; 1 \\<br>x_2^T &amp; 1 \\<br>\vdots &amp; \vdots \\<br>x_m^T &amp; 1<br>\end{array}\right)<br>$$</p>
+<p>再把标记也写成向量形式 $y&#x3D;\left(y_1 ; y_2 ; \ldots ; y_m\right)$, 有<br>$$<br>\widehat{w}^*&#x3D;\underset{\widehat{w}^*}{\arg \min } \sum_{i&#x3D;1}^m(y-X \widehat{w})^T(y-X \widehat{w})<br>$$</p>
+<p>令 $E_{\widehat{w}}&#x3D;(y-X \widehat{w})^T(y-X \widehat{w})$, 对 $\widehat{w}$ 求导得到<br>$$<br>\frac{\partial E_{\hat{w}}}{\partial \widehat{w}}&#x3D;2 X^T(X \widehat{w}-y) \text {. }<br>$$</p>
+<p>令上式为 0 可得 $\widehat{w}$ 的最优解的闭式解, 但由于设计矩阵逆的计算, 比单变量情形要复杂一些。下面我们做一个简单的讨论。<br>当 $X^T X$ 为满秩矩阵或正定矩阵时, 令上式为 0 , 可得<br>$$<br>\widehat{w}&#x3D;\left(X^T X\right)^{-1} X^T y<br>$$</p>
+<p>其中 $\left(X^T X\right)^{-1}$ 是矩阵 $\left(X^T X\right)$ 的逆矩阵, 令 $\hat{x}_i&#x3D;\left(x_i ; 1\right)$. 则最终学得的多元线性回归模型为<br>$$<br>f\left(\hat{x}_i\right)&#x3D;\hat{x}_i^T\left(X^T X\right)^{-1} X^T y<br>$$</p>
+<p>然而, 现实任务中 $X^T X$ 往往不是满秩矩阵, 例如再许多任务中我们会遇到大量的变量,其数目甚至超过样例数, 导致 $X$ 的列数多于行数, $X^T X$ 显然不满秩。此时可解出多个 $\widehat{w}$, 它们都能使均方误差最小化。常见的方法还有引入正则项。</p>
+<h1 id="实验内容"><a href="#实验内容" class="headerlink" title="实验内容"></a>实验内容</h1><h2 id="单变量线性回归"><a href="#单变量线性回归" class="headerlink" title="单变量线性回归"></a>单变量线性回归</h2><ol>
+<li>采用数据集 “data&#x2F;regress_data1.csv”进行单变量线性回归实验</li>
+<li>借助 matplotlib 画出原始数据分布的散点图（x&#x3D;”人口”, $y&#x3D;$ “收益”）</li>
+<li>以最小平方误差为目标函数, 构造模型的损失（误差）计算函数:<br>$$<br>J(w)&#x3D;\frac{1}{2 m} \sum_{i&#x3D;1}^m\left(h\left(x^{(i)}\right)-y^{(i)}\right)^2<br>$$</li>
+</ol>
+<p>其中, $h(x)&#x3D;w^T X&#x3D;w_0 x_0+w_1 x_1+w_2 x_2+\ldots+w_n x_n$</p>
+<ol start="4">
+<li><p>实现批量梯度下降算法（Batch Gradient Decent）用于优化线性回归模型:<br>$$<br>w_j&#x3D;w_j-\alpha \frac{1}{m} \sum_{i&#x3D;1}^m \frac{\partial}{\partial w_j} J(w)<br>$$<br>其中, $w_j$ 为参数向量, $m$ 样本量。<br>提示:<br>批量梯度下降算法可以参考 第 5 章神经网络的优化算法（P104）<br>线性回归模型的偏置 $\mathrm{b}$ 可吸收进参数向量 $\mathrm{w}$, 从而采用向量形式 (P55)</p>
+</li>
+<li><p>采用上述批量梯度下降法, 优化单变量线性回归模型。其中, 迭代轮数 epoch 设定为 1000 轮, 学习率设定为 0.01 , 参数初始化为 0 。</p>
+</li>
+</ol>
+<p>代码输出:</p>
+<ul>
+<li><p>优化结束时的损失值和模型参数</p>
+</li>
+<li><p>将模型拟合的直线和原始数据散点图画到同一张图中</p>
+</li>
+</ul>
+<h2 id="多变量线性回归"><a href="#多变量线性回归" class="headerlink" title="多变量线性回归"></a>多变量线性回归</h2><ol>
+<li>采用数据集 “data&#x2F;regress_data2.csv”进行多变量线性回归实验, 通过房子的大小和房间数量两个变量 回归房子的价格。</li>
+<li>对数据进行特征归一化： $z_i&#x3D;\frac{x_i-\mu}{\sigma}$</li>
+<li>采用上述批量梯度下降法, 优化多变量线性回归模型。其中, 迭代轮数 epoch 设定为 1000 轮, 学习率设定为 0.01 , 参数初始化为 0 。</li>
+</ol>
+<p>代码输出:</p>
+<ul>
+<li><p>优化结束时的损失值和模型参数</p>
+</li>
+<li><p>画图输出训练误差（损失）随着迭代轮数 epoch 的变化曲线</p>
+</li>
+</ul>
+<h1 id="实验代码和结果"><a href="#实验代码和结果" class="headerlink" title="实验代码和结果"></a>实验代码和结果</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">compute_loss</span>(<span class="params">X, Y, theta</span>): <span class="comment">#损失函数的计算</span></span><br><span class="line">    m = Y.size</span><br><span class="line">    loss = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, m):</span><br><span class="line">        x = X[i, <span class="number">1</span>]</span><br><span class="line">        y = Y[i]</span><br><span class="line">        loss += (y - (theta[<span class="number">1</span>] * x + theta[<span class="number">0</span>])) ** <span class="number">2</span></span><br><span class="line">    loss = loss / (<span class="number">2.0</span> * m)</span><br><span class="line">    <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">gradient_descent</span>(<span class="params">X, Y, theta, lr, epoch</span>): <span class="comment">#BGD实现 </span></span><br><span class="line">    m = Y.size</span><br><span class="line">    t = theta.size</span><br><span class="line">    J_history = np.zeros(epoch)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">iter</span> <span class="keyword">in</span> <span class="built_in">range</span>(epoch):</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(t):</span><br><span class="line">            theta[j] = theta[j] - lr * np.<span class="built_in">sum</span>((np.dot(X, theta) - Y) * X[:, j]) / m</span><br><span class="line"></span><br><span class="line">        J_history[<span class="built_in">iter</span>] = compute_loss(X, Y, theta)</span><br><span class="line">    <span class="keyword">return</span> theta, J_history</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">path = <span class="string">&#x27;regress_data1.csv&#x27;</span></span><br><span class="line">data = pd.read_csv(path)</span><br><span class="line">X = data[[<span class="string">&#x27;人口&#x27;</span>]]</span><br><span class="line">Y = data[[<span class="string">&#x27;收益&#x27;</span>]].values.ravel()  <span class="comment"># Flatten Y to 1D array</span></span><br><span class="line">m = X.size</span><br><span class="line">X = np.c_[np.ones(m), X]  <span class="comment"># Add a column of ones for the bias term</span></span><br><span class="line">theta = np.zeros(<span class="number">2</span>)</span><br><span class="line">epoch = <span class="number">1000</span></span><br><span class="line">lr = <span class="number">0.01</span></span><br><span class="line">theta, J_history = gradient_descent(X, Y, theta, lr, epoch)</span><br><span class="line">ine1,=plt.plot(X[:,<span class="number">1</span>],np.dot(X,theta),color=<span class="string">&#x27;red&#x27;</span>)</span><br><span class="line">plt.scatter(data[[<span class="string">&#x27;人口&#x27;</span>]],data[[<span class="string">&#x27;收益&#x27;</span>]]);plt.xlabel(<span class="string">&quot;population&quot;</span>);plt.ylabel(<span class="string">&quot;profit&quot;</span>);</span><br><span class="line"><span class="comment">#plt.plot(range(1000),J_history)</span></span><br><span class="line">plt.show()</span><br><span class="line"><span class="built_in">print</span>(theta,J_history[<span class="number">999</span>])</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu.png?raw=true" alt="alt text"></p>
+<p>$$<br>\begin{aligned}<br>&amp; b&#x3D;-3.25088222 \\<br>&amp; w&#x3D;1.12836314<br>\end{aligned}<br>$$</p>
+<p>训练 1000 次后的损失为 4.514833339953508</p>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-1.png?raw=true" alt="alt text"></p>
+<p>我们只需对前面的代码做简单的修改即可用于多变量线性回归，将计算损失函数的改为</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">loss += (y - (theta[<span class="number">1</span>] * x1 + theta[<span class="number">0</span>]+theta[<span class="number">2</span>]*x2)) ** <span class="number">2</span></span><br></pre></td></tr></table></figure>
+<p>对数据进行归一化</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">X=(X-np.average(X))/np.std(X)</span><br><span class="line">Y=(Y-np.average(Y))/np.std(Y)</span><br><span class="line">Z=(Z-np.average(Z))/np.std(Z)</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/KianaMeiZaychik/KianaMeiZaychik.github.io/blob/master/photo/mlu-2.png?raw=true" alt="alt text"></p>
+<p>$$<br>\begin{aligned}<br>&amp; \mathrm{b}&#x3D;-8.21860310 \mathrm{e}-17 \\<br>&amp; \mathrm{w} 1&#x3D;8.79149410 \mathrm{e}-01 \\<br>&amp; \mathrm{w} 2&#x3D;4.75747766 \mathrm{e}-02<br>\end{aligned}<br>$$</p>
+<p>迭代 1000 次的损失为 0.1335413413355335</p>
+<h1 id="小结或讨论"><a href="#小结或讨论" class="headerlink" title="小结或讨论"></a>小结或讨论</h1><p>线性回归是基于假设目标变量与特征变量之间存在线性关系，然后通过拟合最佳的线性函数来预测目标变量。</p>
+<p>线性回归建立了输入特征（自变量）与输出变量（因变量）之间的线性关系，通过拟合最佳的线性模型来预测输出变量的值。</p>
+<p>线性回归的主要目标是通过学习样本数据集中的特征和目标变量之间的线性关系，来进行预测和解释。线性回归可以用于预测连续数值型的目标变量，也可以用于分析特征对目标变量的影响程度和方向。线性回归的目标是找到最佳的权重和截距，使得模型的预测值与实际值之间的差异最小化。</p>
+<p>梯度下降法：①梯度下降法是一种迭代优化算法，通过不断调整模型参数来最小化损失函数。在线性回归中，梯度下降法通过计算损失函数对模型参数的梯度，并根据梯度的方向和大小更新参数值，直到达到最小化损失的目标。②梯度下降法使用学习率来控制每次迭代中参数的更新步长。学习率需要手动选择，并且影响算法的收敛速度和稳定性。③梯度下降法可能陷入局部最优解而不是全局最优解，特别是在非凸的损失函数中。这可以通过选择合适的学习率和初始化参数来缓解。④梯度下降法的收敛速度取决于学习率的选择和损失函数的形状。较小的学习率可能导致收敛速度较慢，而较大的学习率可能导致无法收敛或发散。⑤梯度下降法相对于最小二乘法对异常值具有一定的鲁棒性，但仍然可能受到大的异常值的影响。⑥梯度下降法可以主要分为批量梯度下降法、随机梯度下降法和mini-batch梯度下降法，这三种梯度下降法的选择取决于数据集的规模、计算资源的限制以及优化效果的要求。⑦梯度下降法主要适用于目标变量和特征变量之间存在近似线性关系，数据集规模较大，无法直接计算矩阵的逆矩阵，数据集中存在噪声或异常值等情况。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/11/15/dsplab2/" rel="prev" title="基于MATLAB的语音信号去噪">
+      <i class="fa fa-chevron-left"></i> 基于MATLAB的语音信号去噪
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/11/24/oslab1/" rel="next" title="进程调度(上)">
+      进程调度(上) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">实验目的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%A6%81%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">实验要求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">实验原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E5%85%83%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.1.</span> <span class="nav-text">一元线性回归模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%85%83%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.2.</span> <span class="nav-text">多元线性回归模型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%86%85%E5%AE%B9"><span class="nav-number">4.</span> <span class="nav-text">实验内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E5%8F%98%E9%87%8F%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92"><span class="nav-number">4.1.</span> <span class="nav-text">单变量线性回归</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%8F%98%E9%87%8F%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92"><span class="nav-number">4.2.</span> <span class="nav-text">多变量线性回归</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E4%BB%A3%E7%A0%81%E5%92%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">5.</span> <span class="nav-text">实验代码和结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%E6%88%96%E8%AE%A8%E8%AE%BA"><span class="nav-number">6.</span> <span class="nav-text">小结或讨论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="闲云"
+      src="/images/Christina.jpg">
+  <p class="site-author-name" itemprop="name">闲云</p>
+  <div class="site-description" itemprop="description">雄关漫道真如铁，而今迈步从头越</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">闲云</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">183k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:46</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>
